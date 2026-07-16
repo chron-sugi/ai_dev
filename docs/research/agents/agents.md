@@ -124,3 +124,104 @@ This is where the requester's ADR-projection system is directly validated by 202
 - **Percentage-improvement marketing claims should be treated skeptically** and traced to primary sources — several "X% faster" headlines repackage the same efficiency study.
 - **Tool behavior changes fast.** Native AGENTS.md support, setting names, and precedence rules shifted repeatedly through 2025–2026; verify `chat.useAgentsMdFile`, nested-file behavior, and Copilot/Claude precedence against current release notes before relying on them.
 - **AGENTS.md is soft context, never enforcement** — the load-bearing caveat. Anything that must hold has to be mechanically enforced (lint, hook, CI, permissions), which is precisely why the ADR-projection-plus-harness architecture is the right one.
+
+
+---
+title: Agent indexes in AGENTS.md and subagent auto-invocation in GitHub Copilot
+type: exploration
+stage: explore
+date: 2026-07-16
+status: complete
+tags: [agentic-workflow, copilot, subagents, agents-md, context-injection]
+---
+
+# Agent indexes in AGENTS.md and subagent auto-invocation in GitHub Copilot
+
+## Question
+
+Should AGENTS.md contain an index of available agents/subagents, and does GitHub Copilot require any document reference (index or otherwise) to invoke custom agents as subagents? A secondary constraint: some agent definitions live in user directories, where absolute paths embed a username and break on shared/cloned repos.
+
+## Summary of findings
+
+An AGENTS.md agent index is unnecessary for machine consumption in both Claude Code and GitHub Copilot. Both harnesses discover agent definitions from well-known locations and delegate automatically based on each agent's `description` metadata. An index is prose duplicating a mechanical mechanism — a drift-prone second write path, which contradicts the single-source-of-truth principle the ADR system exists to enforce. The residual value of an index is human navigation and portability to tools without native discovery, and even then it should be a pointer layer (one line per agent, linking to the canonical definition), never a second home for agent behavior.
+
+## Finding 1: Copilot subagent invocation requires no document reference
+
+GitHub Copilot (VS Code agent mode, CLI, and coding agent) invokes custom agents as subagents through three paths, none of which involve AGENTS.md:
+
+1. **Automatic delegation.** Copilot analyzes the user's request, each configured agent's `description` frontmatter field, current context, and available tools, then delegates to a matching agent automatically. The subagent runs in an isolated context window and streams results back to the parent session.
+2. **Direct invocation.** Naming the agent in the prompt ("Use the testing subagent to..."), the `/agent` slash command (CLI), or `copilot --agent=<name>`.
+3. **Explicit tool call.** Referencing the `#runSubagent` tool in a prompt (VS Code).
+
+Custom agents are also surfaced to the model as tools; the model starts a new agentic loop with a relevant agent when it judges delegation beneficial. By default all custom agents are eligible for automatic selection (`infer: true`).
+
+**Implication:** the `description` field in `.agent.md` frontmatter is the routing mechanism. It plays the same role as the atomic `rule` field in ADR frontmatter — a small, structured, machine-consumed string that drives behavior. Investment belongs in sharp, trigger-oriented descriptions, not in index prose.
+
+## Finding 2: Discovery locations and precedence
+
+Copilot discovers agent profiles (`.agent.md` files) at multiple scopes:
+
+| Scope | Location |
+|---|---|
+| Repository | `.github/agents/` |
+| Organization | `{org}/.github` repository |
+| User (CLI) | `~/.copilot/agents/` |
+| Enterprise | enterprise-level config |
+
+On filename conflict, narrower scope wins: user overrides repository, repository overrides organization, organization overrides enterprise.
+
+Claude Code behaves analogously: project agents in `.claude/agents/`, personal agents in `~/.claude/agents/`, auto-discovered and auto-delegated via each agent's description.
+
+## Finding 3: Delegation is controllable via frontmatter, not documents
+
+Frontmatter fields govern subagent eligibility mechanically:
+
+- `disable-model-invocation: true` — agent cannot be used as a subagent unless a coordinator explicitly allows it
+- `user-invocable: false` — subagent-only; hidden from manual invocation
+- `infer: true` (default) — eligible for automatic selection
+
+Nesting caveat: subagents do not spawn further subagents by default. In VS Code, recursive delegation is gated by `chat.subagents.allowInvocationsFromSubagents` (off by default). Copilot CLI (v1.0.66+) exposes concurrency and depth limits via `/settings` for usage-based billing users.
+
+## Finding 4: User-directory agents must not be indexed in repo documents
+
+A repo-committed index referencing agents under a user home directory is wrong on arrival for every other consumer of the repo — a different contributor, CI, or the same person on another machine. This is worse than ordinary drift because it never starts correct. The username instability is the visible symptom; the underlying error is a scoping mismatch: repo files may reference only repo-scoped resources.
+
+Decision rule:
+
+- Agent matters to the project → promote it into version control (`.github/agents/` or `.claude/agents/`); it is then legitimately discoverable and (if ever needed) indexable.
+- Agent is personal tooling → leave it in the user directory, unindexed by the repo. A personal registry, if wanted, belongs in user-scoped config (e.g., `~/.claude/CLAUDE.md`).
+
+User-scope discovery makes this costless: user-directory agents participate fully in automatic delegation without any repo reference, and user-level definitions override repo-level ones on name collision.
+
+## Finding 5: When an index still earns its place
+
+A short registry (name + one-line "use when," pointing to the canonical definition) is justified only when both hold: (a) multiple repo-scoped agents exist, and (b) the audience includes humans navigating the repo or tools that read AGENTS.md as a generic entry point without native agent discovery. Two constraints apply:
+
+- Index lines are instruction tokens and count against the practical compliance ceiling (~150–200 instruction tokens); index only agents a coordinator would plausibly delegate to.
+- The index is a projection, not a source. Agent behavior lives solely in the `.agent.md` file; the index line should be derivable from (ideally generated from) the definition's frontmatter to prevent drift.
+
+## Decision guidance
+
+Do not add an agents index to AGENTS.md for the current toolchain (Claude Code + GitHub Copilot); both auto-discover and auto-delegate. Treat `.agent.md` `description` fields as the enforcement surface and write them with the same care as ADR `rule` fields. Keep user-directory agents out of all repo documents; promote to `.github/agents/` anything the project depends on. Revisit only if a tool without native discovery joins the toolchain, and then generate the index from frontmatter rather than hand-maintaining it.
+
+## Rejected alternatives
+
+- **Hand-maintained agents index in AGENTS.md** — duplicates auto-discovery; second write path; drift risk; spends instruction-token budget on redundant routing.
+- **Repo index referencing user-directory agents** — broken for all other consumers; embeds usernames; scoping mismatch. Using `~`/`$HOME` fixes the path but not the availability problem.
+- **`~`/`$HOME` references in shared docs generally** — needing them signals the agent should be promoted or the reference dropped.
+
+## Open questions
+
+- Portability of `.agent.md` frontmatter across Copilot surfaces: some VS Code-specific frontmatter is intentionally ignored by the cloud coding agent; if agent files are shared across surfaces, the portable/editor-specific split should be documented per agent.
+- Whether description-driven auto-delegation is reliable enough to skip probe verification — descriptions are a routing contamination vector analogous to instruction files and likely warrant probe prompts of their own.
+
+## Sources
+
+- GitHub Docs — Custom agents and sub-agent orchestration (Copilot SDK): https://docs.github.com/en/copilot/how-tos/copilot-sdk/features/custom-agents
+- GitHub Docs — Asking Copilot questions in your IDE (automatic delegation, `#runSubagent`): https://docs.github.com/copilot/using-github-copilot/asking-github-copilot-questions-in-your-ide
+- GitHub Docs — Invoking custom agents (Copilot CLI, scope precedence): https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/invoke-custom-agents
+- GitHub Docs — Creating custom agents for Copilot CLI: https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/create-custom-agents-for-cli
+- GitHub Changelog (2025-10-28) — Copilot CLI custom agents, `~/.copilot/agents`, agents-as-tools: https://github.blog/changelog/2025-10-28-github-copilot-cli-use-custom-agents-and-delegate-to-copilot-coding-agent/
+- awesome-copilot Learning Hub — Agents and Subagents (`disable-model-invocation`, nesting rule, VS Code setting): https://awesome-copilot.github.com/learning-hub/agents-and-subagents/
+
+Note on sourcing: GitHub first-party docs and changelog entries are authoritative for current behavior but change rapidly; the awesome-copilot learning hub is community-adjacent and should be re-verified against first-party docs before being cited in an ADR.
