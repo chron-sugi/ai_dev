@@ -1,0 +1,29 @@
+# --- Merge into pyproject.toml --- (ADR-0001)
+
+[tool.ruff.lint]
+# Add "D" to your existing select list
+extend-select = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: require format correctness if present, but don't force docstrings
+"tests/**" = ["D100", "D101", "D102", "D103", "D104"]
+
+[tool.interrogate]
+# Private members are IN SCOPE by default — do not set ignore-private.
+fail-under = 100
+ignore-init-method = false
+ignore-magic = true          # __repr__ etc. — signature is the contract
+ignore-nested-functions = false
+exclude = ["tests", ".agent", "migrations"]
+verbose = 1
+
+# --- Merge into .pre-commit-config.yaml ---
+#
+#   - repo: https://github.com/econchick/interrogate
+#     rev: 1.7.0
+#     hooks:
+#       - id: interrogate
+#         args: [--fail-under=100]
