@@ -1,5 +1,5 @@
 ---
-id: ADR-XXXX
+id: ADR-0003
 title: Enforce import placement contracts at pre-push and CI, not pre-commit
 status: accepted
 date: 2026-07-16
