@@ -1,0 +1,26 @@
+# Lint policy registry. Every rule enabled here has a corresponding entry in
+# docs/reference/backend.md (## Linting); keep the two in sync via PR review.
+
+[lint]
+# F401 is in ruff's default select set; the rules below extend it.
+extend-select = [
+    "TID251", # banned-api — ADR-projected bans (moved symbols, deprecated internal APIs, rejected libraries)
+    "PGH003", # blanket-type-ignore — bare `# type: ignore` must name its error code
+    "PGH004", # blanket-noqa — bare `# noqa` must name its rule code
+    "ERA001", # commented-out code
+    "T201",   # print
+    "T203",   # pprint
+    "RUF100", # unused noqa — suppression comments that no longer suppress anything
+]
+
+# Apply F401 inside __init__.py too: intentional re-exports must be declared via
+# `import x as x` aliases or `__all__`, matching mypy's no_implicit_reexport.
+# Deprecated as of ruff 0.14 (this becomes the always-on behavior); drop this
+# line when ruff removes the option.
+ignore-init-module-imports = false
+
+[lint.flake8-tidy-imports.banned-api]
+# Authored per-decision: when an ADR moves a symbol, deprecates an internal API,
+# or rejects a library, add an entry here with `msg` naming the ADR ID.
+# Example:
+# "legacy_pkg.old_client".msg = "Moved in ADR-0007; import from new_pkg.client."
