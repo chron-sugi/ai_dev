@@ -1,96 +1,228 @@
----
-name: new-agent
-description: "Scaffold a new custom agent (.github/agents/<name>.agent.md) from a required input contract. Refuses to generate with missing or vague inputs."
-agent: agent
-argument-hint: "agentName=<kebab-case> mission=<one sentence> routing=<when to invoke + artifact + boundary> inputs=<preconditions + missing-input behavior> output=<.agent/<task-id>/ path + status vocab> tools=<explicit child tool names> nonGoals=<2+ items> stopping=<conditions + cycle cap> [model=<id>] [userInvocable=false]"
-agent: scaffolder
----
+# Domain prompt: Python domain package (rung layout)
 
-# Task
+Domain payload for the scaffolder agent. Protocol (execution phases,
+omission rule, verification discipline, report format, stop conditions) is
+defined in the agent definition — this prompt supplies only what is
+specific to Python domain packages.
 
-Generate a new GitHub Copilot custom agent definition file at
-`.github/agents/${input:agentName}.agent.md`.
+## Binding ADR sections
 
-You are generating a **role contract**, not documentation. Follow the
-generation template and validation rules below exactly. Do not add
-sections beyond the template.
+- `rule` field — the package charter
+- Declared Python surface (names exported from the package root)
+- HTTP endpoints, if any
+- Non-HTTP entry points (recovery, scheduled, CLI), if any
+- Environment tunables, if any
+- Granted cross-package dependency edges (default: none)
+- Rejected alternatives
 
-## Required inputs
+## Assumed-present repo state
 
-All eight fields below are REQUIRED. If any field is empty, ambiguous, or
-fails its quality bar, do NOT generate the file. Instead respond with
-`STATUS: BLOCKED` and a list of exactly the missing/failing fields with
-one clarifying question each. Never invent defaults.
+`app/api/router.py` (assembly), `app/api/dependencies.py` +
+`app/api/errors.py` (shared HTTP kernel), `app/db/engine.py`, shared
+`metadata`, `AppBaseModel`, import-linter wired into pre-commit and CI.
 
-| Field | Value | Quality bar |
-|---|---|---|
-| Agent name (kebab-case, becomes filename) | `${input:agentName:kebab-case-name}` | Kebab-case, no spaces |
-| Mission (one sentence) | `${input:mission:one imperative sentence}` | Single sentence, imperative |
-| Routing description — when to invoke this agent, what artifact it returns, and its boundary vs. adjacent agents | `${input:routing:when to invoke + artifact returned + boundary vs adjacent agents}` | Must fail the vagueness test: "helpful assistant"-style text is rejected |
-| Inputs / preconditions, and behavior when they are missing (ask / investigate / return BLOCKED / hand back) | `${input:inputs:preconditions + explicit missing-input behavior}` | Missing-input behavior must be explicit |
-| Output artifact: file path under `.agent/<task-id>/`, plus status vocabulary (e.g. `COMPLETE \| BLOCKED \| NEEDS_REVIEW`) | `${input:output:.agent/<task-id>/<file> + closed status vocabulary}` | Path + closed status vocabulary both present |
-| Tool allowlist (explicit child tool names, e.g. `read`, `search/codebase`, `runInTerminal` — never umbrella groups like `terminal`) | `${input:tools:comma-separated explicit child tool names}` | Minimal for the role; explicit names only |
-| Non-goals / never-do list | `${input:nonGoals:2+ concrete never-do items}` | At least 2 concrete items |
-| Stopping conditions and cycle caps (when done; max loop iterations before human escalation) | `${input:stopping:done conditions + numeric cycle cap}` | Numeric cap required if role participates in a review loop |
+## Blast radius
 
-Optional (omit from frontmatter if not provided — do not guess):
-- Model: `${input:model:optional model id}`
-- `user-invocable: false` if this is a pure worker invoked only by an orchestrator: `${input:userInvocable:true|false}`
+Target: `src/app/{{PACKAGE}}/` and `tests/{{PACKAGE}}/`.
+Permitted external one-liners:
 
-## Generation template
+- `app/api/router.py`: one `include_router` line (iff `api/` is created)
+- Composition-root lifespan: one `{{PACKAGE}}.tables` registration import
+  (iff `tables.py` is created)
+- `pyproject.toml`: `[tool.importlinter]` blocks per this prompt
 
-Produce the file with this exact structure:
+## The rung model
 
-```markdown
----
-description: <routing description, one sentence, distinguishes from adjacent agents>
-tools: [<allowlist>]
-<model: … only if provided>
-<user-invocable: false only if specified>
----
+Files are organized by **role in the dependency order** — not by syntax,
+not by subdomain. Each rung imports only strictly lower rungs; never
+sideways, never up. Two ports:
 
-<Routing line: restate what this agent does, when to use it, what it returns.>
+- **Port 1 — Python surface**: `__init__.py` re-exports; the only legal
+  import path for other domain packages.
+- **Port 2 — HTTP adapter**: `{{PACKAGE}}/api/`, consumed only by
+  `app.api.router`.
 
-## Mission
-<One sentence.>
-
-## This agent does NOT
-- <non-goals as bullets>
-
-## Inputs
-<Expected artifacts/context. Then: "If missing: <explicit behavior>.">
-
-## Authority
-✅ Always: <2–4 imperative rules>
-⚠️ Ask first: <1–3 rules>
-🚫 Never: <non-goals restated as hard prohibitions; include "Never commit secrets">
-
-## Protocol
-<≈5 phases as short guidance, e.g. Understand → Investigate → Draft → Self-check → Report. No line-by-line program.>
-
-## Output
-Write <artifact> to `.agent/<task-id>/<filename>`.
-Report: status (<vocabulary>), findings, evidence (file:line), open questions, recommended next role, deviations.
-
-## Done when
-<Stopping conditions. Cycle cap: <N> iterations, then escalate to human.>
+```
+src/app/{{PACKAGE}}/
+    __init__.py     # port 1: re-exports only
+    errors.py       # rung 0 — always
+    models.py       # rung 1 — always
+    config.py       # rung 0 — CONDITIONAL
+    tables.py       # rung 2 — conditional on persistence
+    store.py        # rung 3 — conditional on persistence
+    service.py      # rung 4 — CONDITIONAL
+    jobs.py         # rung 5 — CONDITIONAL
+    api/            # rung 5 — CONDITIONAL
+        __init__.py     # exports `router` only
+        router.py
+        schemas.py
+        dependencies.py # CONDITIONAL within the adapter
+    testing.py      # side module — CONDITIONAL
 ```
 
-## Validation (run before emitting the file)
+**Service authority (binding).** When `service.py` exists, it is the sole
+gateway to `store.py` for everything above it — both ports, both rung-5
+adapters:
 
-Reject your own draft and revise if any check fails:
+- Port 1 re-exports service functions, never store functions.
+- `api/router.py` and `jobs.py` call service, never store (contract-enforced).
+- Housekeeping implementations (recovery, pruning, cleanup) live in
+  `store.py`; service exposes them as one-line pass-throughs; `jobs.py`
+  only decides *when* to invoke. Pass-through service functions are
+  expected, not a smell — they stay one line until an invariant arrives.
+  Do not move housekeeping logic up into service to "justify" the
+  pass-through.
 
-1. Body ≤ 150 lines; prefer far less.
-2. Frontmatter `description` passes the routing test: a dispatcher reading only the description can decide whether to route here vs. an adjacent agent.
-3. `tools` contains only explicit child tool names; total tool count is minimal for the role.
-4. No content that belongs in another layer: no lint-enforceable style rules, no repo-wide conventions (those live in instructions files), no orchestration mechanics, no ADR content restated as prose.
-5. Imperative voice throughout; `IMPORTANT`/`YOU MUST` used at most twice.
-6. Exactly one output artifact path, under `.agent/<task-id>/`.
-7. Status vocabulary is a closed set.
+When `service.py` is absent, port 1 and the adapters call store directly
+and this rule is dormant. No per-function exceptions in either state.
 
-## After generation
+## Conditional criteria
 
-Output the file, then remind the user to:
-1. Verify the agent loads via Chat → Diagnostics (chat customization diagnostics view).
-2. Confirm declared tools are actually granted via the Agent Debug Log panel.
-3. Run one probe prompt targeting the agent's 🚫 Never list to verify boundary compliance.
+Resolve each from the ADR's declarations.
+
+| Module | Create when… | Otherwise |
+|---|---|---|
+| `tables.py` + `store.py` | The ADR gives the package persistent state. Always together. | Omit both; pure-logic package. |
+| `service.py` | At least one declared surface function will (a) coordinate more than one store call, (b) enforce a domain invariant, or (c) require logic beyond a 1:1 store-call-to-model mapping. Judge from the declared surface, not imagination. | Omit. Port 1 re-exports store functions directly; consumers cannot tell the difference. |
+| `config.py` | The ADR names environment-sourced tunables (retention windows, limits, external endpoints, toggles). | Omit. Never for constants — domain constants are vocabulary → `models.py`. |
+| `api/` | The ADR declares HTTP endpoints. | Omit entirely. No empty adapter "for later". |
+| `api/dependencies.py` | An adapter `Depends` provider must import this package's own rungs. | Omit. Kernel-only providers import `app.api.dependencies` directly. |
+| `jobs.py` | The ADR names non-HTTP entry points. (Any `running`-state pattern in store implies a recovery routine — check.) | Omit. Never park scheduled work in `api/` or `store.py`. |
+| `testing.py` | The ADR grants another package an edge on this one, OR adapter dependencies will be overridden in consumer tests. | Omit for unconsumed leaves; add in the same commit that grants the first inbound edge. |
+
+**Never create**: `utils.py`, `helpers.py`, `constants.py`, `enums.py`,
+`types.py`, root-level `schemas.py` ("schema" is reserved for the HTTP
+adapter), `repositories.py`, any `_internal/` directory.
+
+## Domain constraints
+
+- Rung order is absolute. `errors.py`, `models.py`, `config.py` import
+  nothing package-internal.
+- Port 1 returns `models.py` types. SQLAlchemy `Row` objects never cross
+  `__init__.py`.
+- Intra-package imports are direct and relative (`from ..service import x`).
+  Never `from app.{{PACKAGE}} import x` inside the package: port 1 is an
+  external boundary, not an internal service locator.
+- `config.py`: `pydantic_settings.BaseSettings` subclass,
+  `env_prefix = "{{PACKAGE_UPPER}}_"`. No global settings imports.
+- `api/schemas.py`: all models inherit `AppBaseModel`; Pydantic v2 idioms
+  only; camelCase-aliased models exist ONLY under `api/`. Single flat file.
+  Growth rule (record, don't apply): split by resource
+  (`invoice_schemas.py`) — never by request/response direction (shape split).
+- `api/router.py`: `APIRouter`, async handlers, `response_model` on every
+  route, handlers thin (parse → delegate → shape; ~10 lines is a smell —
+  stop and note it). Delegates per service authority. May import this
+  package's rungs (relative) and the shared HTTP kernel
+  (`app.api.dependencies`, `app.api.errors`); never `app.api.router`,
+  never another package's rungs.
+- Cross-package imports: only ADR-granted edges, only via port 1.
+
+## Golden files
+
+If `api/` is created: ONE working route end-to-end — the simplest route the
+ADR declares. A stub dependency is acceptable where the service function is
+`NotImplementedError`, but the request/response schema round-trip must be
+real. This route is the imitation target for all future routes in the
+package.
+
+## Contracts
+
+Add to `[tool.importlinter]`:
+
+```toml
+# Port privacy: submodules are private; ports are the only entries
+[[tool.importlinter.contracts]]
+name = "{{PACKAGE}} internals are private"
+type = "forbidden"
+source_modules = ["app"]
+forbidden_modules = ["app.{{PACKAGE}}.*"]
+ignore_imports = [
+    "app.{{PACKAGE}} -> app.{{PACKAGE}}.*",
+    "app.{{PACKAGE}}.* -> app.{{PACKAGE}}.*",
+    "app.api.router -> app.{{PACKAGE}}.api",      # only if api/ exists
+    "app.main -> app.{{PACKAGE}}.tables",         # only if tables.py exists
+]
+
+# Rung order — include only the rungs that exist
+[[tool.importlinter.contracts]]
+name = "{{PACKAGE}} rung order"
+type = "layers"
+layers = [
+    "app.{{PACKAGE}}.api | app.{{PACKAGE}}.jobs",
+    "app.{{PACKAGE}}.service",
+    "app.{{PACKAGE}}.store",
+    "app.{{PACKAGE}}.tables",
+    "app.{{PACKAGE}}.models | app.{{PACKAGE}}.errors | app.{{PACKAGE}}.config",
+]
+containers = []
+```
+
+**Iff `service.py` exists** — the `layers` contract permits skipping rungs;
+this closes that gap for rung 5:
+
+```toml
+[[tool.importlinter.contracts]]
+name = "{{PACKAGE}} rung 5 goes through service"
+type = "forbidden"
+source_modules = ["app.{{PACKAGE}}.api", "app.{{PACKAGE}}.jobs"]
+forbidden_modules = ["app.{{PACKAGE}}.store", "app.{{PACKAGE}}.tables"]
+```
+
+(Include only modules that exist. If a later task adds `service.py` to a
+package scaffolded without it, adding this contract is part of that task.)
+
+Amendments to shared contracts:
+
+- **Independence**: add `app.{{PACKAGE}}` to the repo-wide independent-
+  modules list. ADR-granted edges become the contract's declared exceptions,
+  commented with the ADR id. No per-edge forbidden contracts.
+- **Testing** (iff `testing.py`): extend the repo-wide testing-module
+  contract — `app.* -> app.{{PACKAGE}}.testing` forbidden. Test trees are
+  outside contract scope and unaffected.
+
+## Tests to scaffold
+
+Mirror placement: `tests/{{PACKAGE}}/`.
+
+- Surface test: `import app.{{PACKAGE}}` succeeds; `__all__` matches the
+  ADR-declared names exactly.
+- Iff `api/`: golden test for the golden route via the shared conftest
+  pattern (`httpx.AsyncClient` + `ASGITransport`, `dependency_overrides`).
+  Zero `mock.patch` anywhere under `tests/{{PACKAGE}}/`.
+- Iff `testing.py`: drift alarm — one test asserting the fake satisfies the
+  port-1 surface (same exported names, compatible signatures).
+
+## Deliberate-violation checks
+
+One per contract class; capture each failure output per protocol.
+
+1. **Privacy**: import `app.{{PACKAGE}}.store` (or `models` if no store)
+   from another package.
+2. **Rung order**: an upward import (`store` → `service`, or `models` →
+   `store` in a minimal package).
+3. **Independence**: import another domain package's root (one with no
+   granted edge) from this package.
+4. Iff `api/` — **adapter reach-around**: import
+   `app.{{PACKAGE}}.api.schemas` from `service.py` or `store.py` (rung
+   contract catches it).
+5. Iff `service.py` — **service bypass**: import `..store` from
+   `api/router.py` (or `jobs.py` if no api).
+
+## Positive checks
+
+- `lint-imports` clean
+- `pytest tests/{{PACKAGE}}/` green; full suite green
+- Iff `api/`: app factory builds, route mounts, `/openapi.json` includes it
+
+## Domain acceptance criteria
+
+- [ ] Port 1 exports match ADR-declared names exactly; if `service.py`
+      exists, port 1 re-exports service functions only
+- [ ] No never-create modules present
+- [ ] All intra-package imports relative; zero `from app.{{PACKAGE}} import`
+      inside the package
+- [ ] Privacy, rung-order, and independence contracts in place; service-
+      bypass contract iff `service.py`; testing contract iff `testing.py`
+- [ ] Iff `api/`: golden route working end-to-end, registered in assembly,
+      golden test green, zero `mock.patch`
+- [ ] Iff `tables.py`: registration import at composition root only
