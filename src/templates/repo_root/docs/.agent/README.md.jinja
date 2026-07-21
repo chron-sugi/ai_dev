@@ -1,0 +1,49 @@
+# Agent Workspace
+
+Ephemeral or rolling artifacts produced *by* agents *for* agents in **[[ project_title ]]**.
+
+Committed (the cloud agent needs to read it) but governed by retention — see "Retention policy" below.
+
+## When starting cold, read
+
+1. [`SESSION.md`](./SESSION.md) — what just happened last session.
+2. [`.loop-state`](./.loop-state) — which dev loop is active.
+
+## Live areas
+
+| Directory | Owner agent | Lifecycle |
+|-----------|-------------|-----------|
+| `research/` | `researcher` (RPI phase 1) | Lives until the related PR merges; archive after |
+| `plans/` | `planner` (RPI phase 2) | Same as research/ |
+| `reviews/` | `reviewer` | Lives until merge; archive after |
+| `debug/` | `debugger` | Promote anything reusable to `docs/runbooks/`; archive after |
+| `flakes/` | `triage-flake` skill | Lives until the flake is fixed and removed from quarantine |
+| `sessions/` | `session-end` hook | 30-day retention; auto-pruned |
+
+## Special files
+
+- [`SESSION.md`](./SESSION.md) — rolling last-session digest. Overwritten each session by the `session-end` hook (with a one-line head pointing at the full digest in `sessions/`).
+- [`.loop-state`](./.loop-state) — single line: `rpi`, `adr`, `tdd`, `debug`, `review`, `migration`, `deps-update`, `curate`, or `freeform`. Written by `/loop` through `just loop <mode>`.
+- [`.loop-history`](./.loop-history) — append-only log of loop phase transitions. Useful for reconstructing what loop a PR actually went through.
+
+## Retention policy
+
+| What | Retention | Mechanism |
+|------|-----------|-----------|
+| `sessions/*.md` | 30 days | `nightly-memory-consolidation.yml` workflow (added in later template version) |
+| `research/*.md` | until PR merges; then move to `docs/decisions/` if durable | manual or by `consolidate-memory` skill |
+| `plans/*.md` | until PR merges; then archive (no auto-prune) | manual or by `consolidate-memory` skill |
+| `reviews/*.md` | until PR merges; then archive | manual |
+| `debug/*.md` | promote reusable parts to `docs/runbooks/`; archive the rest | manual |
+| `flakes/*.md` | until the flake is fixed | manual delete when fix lands |
+
+**Promotion rule.** If something in `.agent/` would still be useful in six months, it belongs in `docs/`. Don't let `.agent/` become a junk drawer — that's exactly the failure mode the docs/.agent/ split is designed to prevent.
+
+## What does NOT live here
+
+- ADRs → `docs/decisions/`
+- Runbooks → `docs/runbooks/`
+- Conventions, glossary, stack rationale → `docs/`
+- Code → `apps/` / `packages/`
+
+See [`docs/README.md`](../docs/README.md) for the human-audience side of the split.

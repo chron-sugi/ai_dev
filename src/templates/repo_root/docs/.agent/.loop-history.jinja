@@ -1,0 +1,13 @@
+# Loop History (append-only)
+#
+# Format: ISO-8601 timestamp <space> event <space> details
+# Events: loop-set, approve, revise
+#
+# Example:
+# 2026-01-15T14:32:11Z loop-set rpi
+# 2026-01-15T14:48:02Z approve research→plan
+# 2026-01-15T15:12:48Z approve plan→implement
+#
+# This file is appended to by .github/hooks/scripts/user-prompt.sh and the
+# _advance-loop.sh helper. Useful for reconstructing what loop a PR actually
+# went through, regardless of which agent surface produced it.

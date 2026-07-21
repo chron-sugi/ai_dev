@@ -1,0 +1,79 @@
+# `.agent/flakes/` — quarantined intermittent failures
+
+Captures intermittent test failures (Playwright + non-Playwright) so the team and the agents have a place to investigate them later without blocking the active PR.
+
+A "flake" is a test that:
+
+- Passes locally
+- Sometimes passes in CI and sometimes fails
+- Failure is timing-, network-, or order-dependent — NOT a real regression
+
+If the test reliably fails, it's a **bug** — file it in `.agent/debug/` instead and run `/loop debug`.
+
+## File shape
+
+One markdown file per flaky test. Filename: `<test-name>-<YYYY-MM-DD>.md` (kebab-case). Example: `home-page-renders-2026-05-22.md`.
+
+```markdown
+---
+test: "home page renders [[ project_title ]] and the API health card @smoke"
+file: apps/web/tests/e2e/smoke.spec.ts
+first_observed: 2026-05-22
+last_observed: 2026-05-22
+fail_rate: ~5% (1 in 20 runs)
+quarantined: false   # set true if test was skipped via test.fixme / test.skip
+artifact_urls:
+  - https://dev.azure.com/.../artifact/playwright-traces/<test>-<retry>/trace.zip
+status: under-investigation   # under-investigation | likely-cause-identified | fix-in-progress | resolved
+---
+
+## Symptom
+
+One paragraph: what the test reports, what the actual failure is. Quote the
+assertion that fails and the actual value seen.
+
+## Hypothesis
+
+Best current guess at the cause. Examples:
+- "auth.setup.ts races with the API readiness check"
+- "WebKit handles focus differently after Vite HMR; CI uses preview build so this only fires on first run"
+- "Postgres CONCURRENT index build leaks past test isolation"
+
+## Evidence
+
+- Trace URLs from CI artifacts (`apps/web/test-results/` published by the
+  Playwright pipeline on failure — see `.azure/pipelines/playwright.yml`)
+- Screenshots / video paths
+- Log timestamps showing the race
+- Any reproduction attempts
+
+## Workaround (if any)
+
+- Test skipped via `test.fixme()` referencing this file
+- Test marked `test.describe.serial()` to remove the race
+- Retry count bumped temporarily — note this is a debt, not a fix
+
+## Next step
+
+What an investigator should do when they pick this up. The curator may surface
+this file's `last_observed` to escalate it if it keeps appearing.
+```
+
+## Capture flow (Playwright + CI)
+
+When a Playwright test fails intermittently:
+
+1. **CI publishes the trace artifact** on test failure (`apps/web/test-results/` → "playwright-traces" pipeline artifact). See [`apps/web/tests/e2e/README.md`](../../apps/web/tests/e2e/README.md) for the failure-artifact catalogue.
+2. **Download the trace artifact** from the failed CI run.
+3. **Open the trace** with `npx playwright show-trace <path-to-trace.zip>`. Identify the symptom (which step / assertion / network call).
+4. **Create the flake file** at `.agent/flakes/<test-name>-<date>.md` using the shape above. Paste the artifact URL into `artifact_urls`.
+5. **If the flake is blocking other work**, mark the test `test.fixme()` referencing this file. Otherwise leave it active and accept the intermittent CI failures while investigating.
+6. **Update `last_observed`** when the flake recurs. After three or more recurrences without resolution, escalate (file a `loop:debug` PR pointing at this file).
+
+## Promotion
+
+A flake that turns into a known reproducible bug becomes a `.agent/debug/<incident>.md` entry; the flake file links to the debug entry and its `status` changes to `resolved (see debug/<incident>.md)`. Once the bug is fixed and a regression test added (via `/debug-fix` or `/tdd-from-repro`), the flake file can be archived.
+
+## Retention
+
+Flakes stay here until the underlying issue is resolved. The curator surfaces stale flake files (no `last_observed` update in 90 days, still `under-investigation`) for triage during `/loop curate` passes — those are usually candidates for resolution or removal.

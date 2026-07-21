@@ -1,0 +1,84 @@
+---
+task: example
+title: Example research note (template; delete or rename)
+loop: rpi
+depth: standard
+created: [[ current_year ]]-01-01
+agent-id: template-example
+concepts:
+  - docs/concepts/example.md
+adrs: []
+related-plans: []
+---
+
+# Research: Example research note
+
+> **Template note.** This is a worked example showing the research-note shape.
+> When you do your first real piece of research, either rename this file
+> (`mv example.md <task-slug>.md` and rewrite the contents) or delete it and
+> generate a new one via `/research task=<slug>`. The content below shows
+> the structure but doesn't apply to anything real.
+
+## Problem
+
+The user wants to add a "soft delete" capability for Users. Currently `User`
+exists in states `PENDING`, `ACTIVE`, `SUSPENDED` (see `docs/concepts/example.md`).
+They want a fourth `DELETED` state with the lifecycle constraints documented
+in the concept doc, including:
+
+- Email scrambled at delete time so the original is re-registerable.
+- Row retained for 90 days, then hard-deleted by a scheduled job.
+
+## Affected surface
+
+| Path | What it does | Why this task touches it |
+|---|---|---|
+| `apps/api/src/app/domain/user.py:1-113` | User entity + lifecycle methods | Already has `soft_delete()`; needs review against the new requirements |
+| `apps/api/src/app/models/user.py` (TBD) | SQLAlchemy ORM model | Needs `deleted_at` column + index for the 90-day pruner |
+| `apps/api/alembic/versions/*` | Migration history | New migration adds `deleted_at` |
+| `apps/api/src/app/api/v1/routes/users.py` (TBD) | HTTP routes | Needs `DELETE /users/{id}` endpoint |
+| `apps/api/src/app/services/user.py` (TBD) | Orchestration | Wraps the entity transition + persistence |
+| `apps/web/src/features/users/...` (TBD) | UI | Confirmation modal + permission check |
+
+## Prior art
+
+- `Organization` entity uses the same soft-delete pattern (`deleted_at` timestamp on the model). See `docs/concepts/organization.md` (if it exists yet) for the established pattern.
+- ADR-0012 — *Soft-delete semantics* (placeholder; would document the 90-day window decision).
+
+## Constraints
+
+- **Concept invariant** (`docs/concepts/example.md`): post-delete, the email must be scrambled so the original is re-registerable. The entity's `soft_delete()` already does this.
+- **Convention** (`docs/conventions.md#layering`): the entity may not directly call the ORM session. The service layer orchestrates entity transition + repository persistence.
+- **ADR-0007** — *Identity provider choice*: deleting locally must also revoke external auth sessions. Out of scope for this research note, but the planner needs to know.
+
+## Options
+
+### Option A: Endpoint + service + scheduled pruner
+
+A `DELETE /users/{id}` route calls a `UserService.soft_delete()`, which loads the entity, calls `entity.soft_delete()`, persists via the repository, and emits an `auth-session-revoke` event. A separate scheduled job (CRON, weekly) hard-deletes rows where `deleted_at < now() - 90d`.
+
+**Strongest case:** Mirrors the existing `Organization` pattern exactly. No new infrastructure.
+
+**Biggest concern:** Coordinating the auth-session revoke is async; if the event bus is down, the user could still log in for up to N minutes after "deletion."
+
+### Option B: Synchronous revoke + tombstone row
+
+Same as A but the route blocks on `auth-session-revoke` completing before returning success. Add a separate `deleted_users` tombstone table to avoid the 90-day window of orphaned rows.
+
+**Strongest case:** Stronger guarantees — when the API returns 200, the user truly cannot log in.
+
+**Biggest concern:** Latency. Auth-session revoke under load is ~500ms p95.
+
+## Recommendation
+
+(Soft.) Option A matches the existing pattern and is incrementally improvable to Option B's stronger guarantee later if needed. The 90-day window is a feature, not a bug — it's what enables undo-delete within a recovery period.
+
+## Open questions
+
+- Should self-service delete be allowed, or admin-only? The concept doc doesn't say.
+- What happens to a User's resources (sessions, drafts, owned Organizations) at delete? Currently undefined.
+- Does the seat-license count exclude DELETED users immediately or after 90 days? (Flagged as an open question in the concept doc too.)
+
+## Hand-off
+
+Next: `/rpi-plan task=add-user-deletion from-research=.agent/research/example.md`.

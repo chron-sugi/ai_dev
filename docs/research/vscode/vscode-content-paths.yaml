@@ -1,0 +1,100 @@
+# =============================================================================
+# VS Code / GitHub Copilot customization content — default file locations
+# Researched 2026-07-21 against code.visualstudio.com/docs/agent-customization/*
+#
+# KEY FACT (verified locally + microsoft/vscode#305642):
+#   All *user-level* markdown content (prompts, instructions, agents/chatmodes)
+#   lives in ONE folder: <user-data>/User/prompts/
+#   The docs' claims of User/agents and User/instructions folders are WRONG —
+#   files placed there are not picked up. The file suffix (.prompt.md,
+#   .instructions.md, .agent.md) determines the content type, not the folder.
+#
+# %APPDATA% expands to C:\Users\<you>\AppData\Roaming
+# For VS Code Insiders replace "Code" with "Code - Insiders".
+# Non-default profiles: <user-data>/User/profiles/<profile-id>/prompts/
+#   (reported flaky in vscode#305642 — verify before relying on it)
+# =============================================================================
+
+vscode_user_data_dir:
+  windows: "%APPDATA%\\Code\\User"
+  macos: "~/Library/Application Support/Code/User"
+  linux: "~/.config/Code/User"
+
+paths:
+  instructions:
+    suffix: "*.instructions.md"
+    user:
+      windows: "%APPDATA%\\Code\\User\\prompts\\"
+      macos: "~/Library/Application Support/Code/User/prompts/"
+      linux: "~/.config/Code/User/prompts/"
+      cli_shared: # also discovered; shared with Copilot CLI / Claude Code
+        - "~/.copilot/instructions/"
+        - "~/.claude/rules/"
+    workspace:
+      - ".github/instructions/"
+      - ".claude/rules/"
+    setting: "chat.instructionsFilesLocations" # workspace locations only
+
+  prompts:
+    suffix: "*.prompt.md"
+    user:
+      windows: "%APPDATA%\\Code\\User\\prompts\\"
+      macos: "~/Library/Application Support/Code/User/prompts/"
+      linux: "~/.config/Code/User/prompts/"
+    workspace:
+      - ".github/prompts/"
+    setting: "chat.promptFilesLocations"
+
+  agents: # custom agents; legacy *.chatmode.md — rename to *.agent.md
+    suffix: "*.agent.md"
+    user:
+      windows: "%APPDATA%\\Code\\User\\prompts\\"
+      macos: "~/Library/Application Support/Code/User/prompts/"
+      linux: "~/.config/Code/User/prompts/"
+      cli_shared:
+        - "~/.copilot/agents/"
+    workspace:
+      - ".github/agents/"
+      - ".claude/agents/"
+    setting: "chat.agentFilesLocations"
+
+  skills:
+    suffix: "<skill-name>/SKILL.md" # one folder per skill, resources alongside
+    user: # skills have no VS Code user-data location; home-dir folders only
+      - "~/.copilot/skills/"
+      - "~/.claude/skills/"
+      - "~/.agents/skills/"
+    workspace:
+      - ".github/skills/"
+      - ".claude/skills/"
+      - ".agents/skills/"
+
+  hooks:
+    suffix: "*.json"
+    user:
+      - "~/.copilot/hooks/"
+      - "~/.claude/settings.json"
+    workspace:
+      - ".github/hooks/"
+      - ".claude/settings.json"
+      - ".claude/settings.local.json"
+    setting: "chat.hookFilesLocations"
+    note: "Workspace hooks take precedence over user hooks for the same event."
+
+  mcp:
+    user: # per-profile; open via 'MCP: Open User Configuration'
+      windows: "%APPDATA%\\Code\\User\\mcp.json"
+      macos: "~/Library/Application Support/Code/User/mcp.json"
+      linux: "~/.config/Code/User/mcp.json"
+    workspace: ".vscode/mcp.json"
+
+  always_on_instructions: # workspace-only; no user-level equivalent
+    copilot_instructions: ".github/copilot-instructions.md"
+    agents_md: "AGENTS.md" # workspace root; setting: chat.useAgentsMdFile
+    claude_md: "CLAUDE.md" # root or .claude/; setting: chat.useClaudeMdFile
+
+related_settings:
+  chat.useAgentsMdFile: "enable/disable AGENTS.md discovery"
+  chat.useClaudeMdFile: "enable/disable CLAUDE.md discovery"
+  chat.useNestedAgentsMdFiles: "experimental — nested AGENTS.md in subfolders"
+  chat.useCustomizationsInParentRepositories: "monorepos — discover content from parent repo roots up to the .git root"
