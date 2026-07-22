@@ -1,8 +1,14 @@
 ---
+# PLACEMENT (ADR-0009):
+#   Domain-scoped knowledge → docs/domains/<domain>/CONCEPT.md
+#     (fixed filename; the folder is the identifier).
+#   Cross-cutting knowledge only → docs/concepts/<name>.md
+#     (filename is the identifier).
 # One sentence answering "should I load this?" — drives INDEX.md generation.
 summary: >
   <What this concept is and when an agent needs it.>
-# Glob(s) for the code territory this concept covers — enables path-scoped loading.
+# Glob(s) for the code territory this concept covers — enables path-scoped
+# loading. For a domain CONCEPT.md, this is the domain package's territory.
 scope: "<src/area/**>"
 ---
 
@@ -13,7 +19,9 @@ MENTAL MODEL — required. 3–10 sentences.
 How this actually works: the system shape a new agent would otherwise
 reconstruct by reading code for twenty minutes. Analogies and structure,
 not implementation detail. No file paths, no line numbers, no snippets.
-End with a one-line ownership boundary.
+End with a one-line ownership boundary. For a domain CONCEPT.md, contract
+state (declared surface, endpoints, granted edges) is always on the far
+side of that boundary — it belongs to the sibling CONTRACT.md (ADR-0009).
 -->
 
 <Mental model prose.>
@@ -46,8 +54,9 @@ Misleading entry points belong here, named by stable identifier only.
 
 <!--
 NEVER include: decision rationale (→ ADR), procedures (→ instructions),
-paths/lines/snippets, history, roadmap, or anything derivable from the
-code in under a minute.
+contract state — surface, endpoints, dependency edges (→ sibling
+CONTRACT.md, per ADR-0009), paths/lines/snippets, history, roadmap, or
+anything derivable from the code in under a minute.
 HARD CAP: 250 lines. Over budget = split or demote, never raise the cap.
 ONE CONCEPT = one mental model, one noun phrase (no "and"), one contiguous
 scope, changes together. Seam visible = split; interdependent = keep whole.

@@ -3,18 +3,19 @@ id: ADR-0002
 title: Introduce living reference documents for current-state configuration
 status: accepted
 date: 2026-07-18
+domain: reference-docs
 projection: instructions
 scope: docs/**
-rule: "Record piecemeal, current-state configuration in docs/reference/ registry documents; reserve docs/adr/ for contested, point-in-time decisions. Reference entries link to an ADR when one exists; never accumulate configuration lists inside an ADR."
+rule: "Record piecemeal, current-state configuration in docs/reference/ registry documents; reserve docs/adr/ for contested, point-in-time adrs. Reference entries link to an ADR when one exists; never accumulate configuration lists inside an ADR."
 ---
 
 # Introduce living reference documents for current-state configuration
 
 ## Context
 
-Environment and tooling configuration accretes piecemeal across working sessions rather than arriving as discrete, contested decisions. Each addition still needs three things captured: the configuration itself, what it does, and the rationale for adding it.
+Environment and tooling configuration accretes piecemeal across working sessions rather than arriving as discrete, contested adrs. Each addition still needs three things captured: the configuration itself, what it does, and the rationale for adding it.
 
-ADRs are the current canonical write path for durable decisions, but they are point-in-time, immutable-once-accepted records. Using an ADR as an accumulating configuration list would require continuous appending, which violates the ADR model (supersede, don't edit). Creating a full ADR per minor configuration addition produces noise and dilutes the signal of genuinely contested decisions.
+ADRs are the current canonical write path for durable adrs, but they are point-in-time, immutable-once-accepted records. Using an ADR as an accumulating configuration list would require continuous appending, which violates the ADR model (supersede, don't edit). Creating a full ADR per minor configuration addition produces noise and dilutes the signal of genuinely contested adrs.
 
 A document class for *current state* is missing.
 
@@ -29,7 +30,7 @@ Introduce **living reference documents** under `docs/reference/` as a second doc
 
 ## Relationship to ADRs
 
-- ADRs remain the sole write path for contested decisions with rejected alternatives.
+- ADRs remain the sole write path for contested adrs with rejected alternatives.
 - When a reference entry embodies such a decision, the decision gets an ADR and the entry links to it. The registry holds state; the ADR holds reasoning history.
 - ADRs are never used to accumulate configuration lists; reference documents are never used to record decision history.
 
@@ -43,5 +44,5 @@ Introduce **living reference documents** under `docs/reference/` as a second doc
 ## Rejected alternatives
 
 - **Appendable ADRs**: violates the immutability principle; turns decision records into state documents and breaks supersession semantics.
-- **One ADR per configuration addition**: correct semantics but disproportionate ceremony; buries contested decisions in noise.
+- **One ADR per configuration addition**: correct semantics but disproportionate ceremony; buries contested adrs in noise.
 - **Prose-only conventions doc without structure**: loses per-entry rationale and cannot feed the projection pipeline; drifts toward unmaintained narrative.

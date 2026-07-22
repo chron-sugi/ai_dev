@@ -1,10 +1,12 @@
 ---
+name: write-adr
+agent: architect
 description: Author a new Architecture Decision Record in docs/adr/, conforming to the projection schema
 ---
 
 # Write a New ADR
 
-You are documenting a durable architectural decision. ADRs in `docs/adr/` are the single write path for durable decisions; instruction files, golden files, and lint config are generated from them. Your output must therefore be schema-valid and projection-ready.
+You are documenting a durable architectural decision. ADRs in `docs/adr/` are the single write path for durable adrs; instruction files, golden files, and lint config are generated from them. Your output must therefore be schema-valid and projection-ready.
 
 ## Step 1 — Qualify the decision
 
@@ -14,11 +16,11 @@ Before writing anything, confirm the decision meets at least one of these criter
 - Likely to be re-litigated or undone by a future agent session
 - Counterintuitive — it contradicts the statistically common solution an agent would default to
 
-One decision per ADR. If the input contains two decisions, say so and propose splitting before proceeding.
+One decision per ADR. If the input contains two adrs, say so and propose splitting before proceeding.
 
 ## Step 2 — Gather what you're missing
 
-Read `docs/adr/index.md` (or list `docs/adr/`) and check:
+Read `docs/adr/INDEX` (or list `docs/adr/`) and check:
 
 - Does an existing ADR already cover this? If yes, propose a superseding ADR instead and set the `supersedes` link.
 - Does this decision conflict with any `accepted` ADR? If yes, stop and surface the conflict — do not write an ADR that contradicts a settled decision without an explicit supersession.
@@ -35,6 +37,7 @@ id: ADR-NNNN
 title: <short noun phrase, the decision not the problem>
 status: proposed
 date: <today, ISO 8601>
+domain: <kebab-case domain this decision belongs to, e.g. concept-docs>
 supersedes: <ADR-ID or omit>
 scope: "<glob(s) covering the files this decision governs>"
 rule: "<ONE atomic, imperative sentence — see constraints below>"
@@ -74,6 +77,10 @@ The rule is the projectable unit — it gets compiled verbatim into instruction 
 Bad: "We prefer to use the cn() helper where possible for class merging and also avoid string concatenation."
 Good: "Merge Tailwind classes only via the cn() helper; never concatenate class strings."
 
+## Constraints on the `domain` field
+
+**REQUIRED on every ADR.** Must be kebab-case (lowercase words separated by hyphens, e.g. `concept-docs`, `api-layer`). Names the domain the decision belongs to and drives domain-clustered projection; reuse an existing domain name from `docs/domain/` when one fits rather than inventing a near-duplicate.
+
 ## Constraints on `projection`
 
 Choose the *lowest* layer that can express the rule — prose is the last resort:
@@ -86,5 +93,5 @@ Choose the *lowest* layer that can express the rule — prose is the last resort
 ## Step 4 — Finish
 
 1. Run `scripts/adr-lint` if present and fix any findings.
-2. Do NOT edit `.github/copilot-instructions.md`, `.github/instructions/**`, or `docs/adr/index.md` — those are generated. State that the human should review the ADR, flip `status` to `accepted`, and run `scripts/project-adrs`.
+2. Do NOT edit `.github/copilot-instructions.md`, `.github/instructions/**`, or `docs/adr/INDEX` — those are generated. State that the human should review the ADR, flip `status` to `accepted`, and run `scripts/project-adrs`.
 3. Output a one-line summary: the ADR id, title, rule, and chosen projection layer.

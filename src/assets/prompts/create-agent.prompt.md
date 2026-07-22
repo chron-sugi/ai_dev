@@ -1,5 +1,5 @@
 ---
-name: new-agent
+name: create-agent
 description: "Scaffold a new custom agent (.github/agents/<name>.agent.md) from a required input contract. Refuses to generate with missing or vague inputs."
 agent: agent
 argument-hint: "agentName=<kebab-case> mission=<one sentence> routing=<when to invoke + artifact + boundary> inputs=<preconditions + missing-input behavior> output=<.agent/<task-id>/ path + status vocab> tools=<explicit child tool names> nonGoals=<2+ items> stopping=<conditions + cycle cap> [model=<id>] [userInvocable=false]"

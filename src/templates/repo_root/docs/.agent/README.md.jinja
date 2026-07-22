@@ -31,7 +31,7 @@ Committed (the cloud agent needs to read it) but governed by retention — see "
 | What | Retention | Mechanism |
 |------|-----------|-----------|
 | `sessions/*.md` | 30 days | `nightly-memory-consolidation.yml` workflow (added in later template version) |
-| `research/*.md` | until PR merges; then move to `docs/decisions/` if durable | manual or by `consolidate-memory` skill |
+| `research/*.md` | until PR merges; then move to `docs/adrs/` if durable | manual or by `consolidate-memory` skill |
 | `plans/*.md` | until PR merges; then archive (no auto-prune) | manual or by `consolidate-memory` skill |
 | `reviews/*.md` | until PR merges; then archive | manual |
 | `debug/*.md` | promote reusable parts to `docs/runbooks/`; archive the rest | manual |
@@ -41,7 +41,7 @@ Committed (the cloud agent needs to read it) but governed by retention — see "
 
 ## What does NOT live here
 
-- ADRs → `docs/decisions/`
+- ADRs → `docs/adrs/`
 - Runbooks → `docs/runbooks/`
 - Conventions, glossary, stack rationale → `docs/`
 - Code → `apps/` / `packages/`

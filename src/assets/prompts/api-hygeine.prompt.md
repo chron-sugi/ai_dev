@@ -1,7 +1,6 @@
 ---
+agent: explorer
 description: This prompt is used to audit a Python repository for package-API-boundary hygiene, focusing on `__init__.py` files and their use of `__all__`.
-
-
 ---
 # Audit prompt: `__init__.py` API-boundary hygiene
 

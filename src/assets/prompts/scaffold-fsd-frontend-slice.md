@@ -1,7 +1,6 @@
 ---
-description:
 agent: scaffolder
-
+description: Domain payload for the scaffolder agent — scaffold a Feature-Sliced Design 2.1 frontend slice from an approved ADR.
 ---
 # Domain prompt: FSD frontend slice
 

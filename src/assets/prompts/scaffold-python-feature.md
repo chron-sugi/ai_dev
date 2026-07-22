@@ -1,3 +1,8 @@
+---
+agent: scaffolder
+description: Domain payload for the scaffolder agent — scaffold a Python domain package in the rung layout from an approved ADR.
+---
+
 # Domain prompt: Python domain package (rung layout)
 
 Domain payload for the scaffolder agent. Protocol (execution phases,

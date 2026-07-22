@@ -1,0 +1,150 @@
+# =============================================================================
+# Claude Code customization content — default file locations
+# Researched 2026-07-21 against docs.claude.com (Claude Code docs, ~v2.1.214)
+#
+# KEY FACTS:
+#   - Unlike VS Code, there is no per-OS user-data dir: user-level content
+#     lives under ~/.claude/ on ALL platforms (Windows/macOS/Linux).
+#     No env var relocates ~/.claude/ or .claude/ — paths are fixed.
+#   - Project-level content lives under ./.claude/ at the repo root.
+#   - A fourth "managed/enterprise" scope exists (per-OS paths below) and
+#     always wins; it cannot be overridden by user or project files.
+#   - Claude Code reads CLAUDE.md, NOT AGENTS.md. To share one file, import
+#     it (`@AGENTS.md` inside CLAUDE.md) or symlink AGENTS.md -> CLAUDE.md.
+#   - *.chatmode.md / .github/prompts / .github/instructions are VS Code /
+#     Copilot concepts — Claude Code does not read them.
+# =============================================================================
+
+claude_config_dirs:
+  user: "~/.claude/" # same on Windows (C:\Users\<you>\.claude\), macOS, Linux
+  project: "./.claude/" # repo root; commit shared content, gitignore *.local.*
+  managed: # enterprise policy; highest precedence, cannot be excluded
+    windows: "C:\\Program Files\\ClaudeCode\\"
+    macos: "/Library/Application Support/ClaudeCode/"
+    linux: "/etc/claude-code/"
+
+paths:
+  memory: # always-on instructions, loaded at session start
+    suffix: "CLAUDE.md"
+    user: "~/.claude/CLAUDE.md"
+    project:
+      - "CLAUDE.md" # repo root (or ./.claude/CLAUDE.md — either works)
+      - "CLAUDE.local.md" # personal, gitignore it
+      - "../CLAUDE.md" # ancestor dirs are walked up at session start
+      - "<subdir>/CLAUDE.md" # nested files load on-demand when subdir is read
+    managed: "<managed-dir>/CLAUDE.md" # loaded first, cannot be excluded
+    imports: "@path/to/file syntax inside CLAUDE.md; max depth 4 hops"
+    load_order: "managed -> user -> ancestors -> project root -> local -> nested (on-demand)"
+
+  rules: # modular instruction files, alternative to one big CLAUDE.md
+    suffix: "*.md" # optional YAML frontmatter `paths:` globs scope a rule to files
+    user:
+      - "~/.claude/rules/" # docs conflict on user-level support — verify locally
+    workspace:
+      - ".claude/rules/" # recursive discovery
+      - "<subdir>/.claude/rules/" # nested; loads on-demand like nested CLAUDE.md
+
+  commands: # slash commands (a.k.a. prompts); legacy — prefer skills
+    suffix: "*.md" # filename = command name; subdirs create namespaces
+    user: "~/.claude/commands/"
+    workspace:
+      - ".claude/commands/"
+    frontmatter: [description, argument-hint, allowed-tools, model, disable-model-invocation]
+    note: "Still supported, but .claude/skills/ is the recommended replacement."
+
+  skills: # current mechanism for both slash commands and model-invoked skills
+    suffix: "<skill-name>/SKILL.md" # one folder per skill, resources alongside
+    user:
+      - "~/.claude/skills/"
+    workspace:
+      - ".claude/skills/"
+    plugin: "<plugin-root>/skills/<name>/SKILL.md" # invoked as /plugin-name:skill-name
+    precedence: "project skill shadows user skill of the same name"
+
+  agents: # subagents spawned via the Agent tool or /agent-name
+    suffix: "*.agent.md or <name>.md" # markdown + YAML frontmatter
+    user:
+      - "~/.claude/agents/"
+    workspace:
+      - ".claude/agents/"
+    plugin: "<plugin-root>/agents/"
+    frontmatter: [description, model, tools, system-prompt, memory]
+    precedence: "project agents override user agents of the same name"
+
+  hooks: # configured INSIDE settings files (hooks key), not standalone files
+    user: "~/.claude/settings.json"
+    workspace:
+      - ".claude/settings.json"
+      - ".claude/settings.local.json"
+    managed: "<managed-dir>/managed-settings.json"
+    plugin: "<plugin-root>/hooks/hooks.json"
+    events: # main lifecycle events (subset)
+      - PreToolUse / PostToolUse / PostToolUseFailure
+      - UserPromptSubmit / Stop
+      - SessionStart / SessionEnd
+      - SubagentStart / SubagentStop
+      - PreCompact / PostCompact / Notification / PermissionRequest
+    note: "local > project > user for the same event; managed always wins."
+
+  mcp:
+    user: "~/.claude.json" # NOTE: home-dir dotfile, NOT inside ~/.claude/
+    workspace: ".mcp.json" # repo root; team-shared, commit it
+    managed: "<managed-dir>/managed-mcp.json" # exclusive control if present
+    plugin: "<plugin-root>/.mcp.json"
+    format: "JSON with top-level mcpServers object; ${VAR} expansion supported"
+    filters: [allowedMcpServers, deniedMcpServers, allowManagedMcpServersOnly]
+
+  settings:
+    user: "~/.claude/settings.json"
+    workspace:
+      - ".claude/settings.json" # team-shared, commit it
+      - ".claude/settings.local.json" # personal, gitignore it
+    managed:
+      - "<managed-dir>/managed-settings.json"
+      - "<managed-dir>/managed-settings.d/*.json" # drop-in dir, merged
+      - "HKLM\\SOFTWARE\\Policies\\ClaudeCode" # Windows registry (Group Policy)
+      - "com.anthropic.claudecode" # macOS MDM plist domain
+    precedence: "managed > --settings flag > local > project > user"
+
+  output_styles: # replace/augment the system prompt for the main loop
+    suffix: "*.md" # markdown + YAML frontmatter (name, description, keep-coding-instructions)
+    user:
+      - "~/.claude/output-styles/"
+    workspace:
+      - ".claude/output-styles/" # nested dirs between root and cwd load; closest wins
+    plugin: "<plugin-root>/output-styles/"
+    note: "Select via /config; standalone /output-style command removed in v2.1.91."
+
+  keybindings:
+    suffix: "keybindings.json"
+    user: "~/.claude/keybindings.json" # only location; hot-reloaded
+    schema: "https://www.schemastore.org/claude-code-keybindings.json"
+
+  plugins:
+    manifest: "<plugin-root>/.claude-plugin/plugin.json" # required
+    contents: [skills/, agents/, commands/, hooks/, .mcp.json, output-styles/]
+    install: "/plugin install <marketplace>/<name>; dev: --plugin-dir ./path"
+    skills_dir_autoload: "~/.claude/skills/<name>/ with .claude-plugin/plugin.json"
+    marketplaces:
+      - "anthropics/claude-plugins-official"
+      - "anthropics/claude-plugins-community"
+
+  auto_memory: # persistent per-project memory maintained by Claude itself
+    index: "~/.claude/projects/<project>/memory/MEMORY.md" # first 200 lines / 25KB loaded
+    topics: "~/.claude/projects/<project>/memory/*.md" # read on-demand
+    settings: [autoMemoryEnabled, autoMemoryDirectory]
+    note: "All git worktrees of a repo share one memory directory."
+
+env_vars: # the few that affect content/file behavior
+  CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1 disables auto memory"
+  CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD: "1 loads CLAUDE.md from --add-dir dirs"
+  CLAUDE_CODE_DEBUG_LOGS_DIR: "override debug log path (default ~/.claude/debug/)"
+  # No CLAUDE_CONFIG_DIR — config locations cannot be relocated.
+
+not_in_claude_code: # VS Code / Copilot concepts with no Claude Code equivalent
+  - ".github/prompts/, .github/instructions/, .github/agents/ (Copilot-only)"
+  - "*.prompt.md / *.instructions.md / *.chatmode.md suffixes"
+  - "chat.* settings (chat.promptFilesLocations etc.)"
+  - ".vscode/mcp.json (Claude Code uses .mcp.json at repo root)"
+  - "per-OS user-data dir (%APPDATA%/Code/User) — ~/.claude/ everywhere"
+  - "AGENTS.md discovery — import via @AGENTS.md in CLAUDE.md or symlink"

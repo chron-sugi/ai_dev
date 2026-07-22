@@ -250,7 +250,7 @@ The best test is:
 
 > Would an agent working on a matching file repeatedly benefit from this instruction, and is the rule not reliably inferable from the code or tooling?
 
-VS Code recommends focusing on information that the AI cannot easily infer, such as non-default conventions, architectural decisions, and environmental constraints. citeturn369847view1
+VS Code recommends focusing on information that the AI cannot easily infer, such as non-default conventions, architectural adrs, and environmental constraints. citeturn369847view1
 
 ## 6. What should not be in `*.instructions.md`?
 

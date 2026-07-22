@@ -3,6 +3,7 @@ id: ADR-0001
 title: Python docstring policy — Google style, coverage includes private members
 status: accepted
 date: 2026-07-16
+domain: python-style
 projection:
   - .github/instructions/python-docstrings.instructions.md
   - pyproject.toml ([tool.ruff.lint.pydocstyle], [tool.interrogate])

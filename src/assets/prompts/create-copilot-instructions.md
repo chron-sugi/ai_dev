@@ -1,7 +1,6 @@
 ---
+agent: agent
 description: This file describes the repo-wide coding conventions and instructions for AI coding agents.
-
-
 ---
 
 # Generate copilot-instructions.md
@@ -26,7 +25,7 @@ Perform a comprehensive inventory before asking anything:
 Present a short summary of what you found, then ask only the questions discovery could not answer. Candidates:
 
 - Conventions that appear inconsistent across the codebase — which variant is canonical?
-- Deliberate decisions you can see but not explain (unusual dependency choices, avoided libraries, disabled lint rules) — what is the reasoning? Are there rejected alternatives worth recording?
+- Deliberate adrs you can see but not explain (unusual dependency choices, avoided libraries, disabled lint rules) — what is the reasoning? Are there rejected alternatives worth recording?
 - Directories or files agents should never touch or should treat as generated.
 - Anything the team repeatedly corrects in AI-generated code today.
 

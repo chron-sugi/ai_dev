@@ -1,5 +1,5 @@
 ---
-mode: agent
+agent: coder
 description: "Two-phase docstring sweep: inventory the codebase, then write Google-style docstrings per ADR-0001. Run on a dedicated branch."
 ---
 

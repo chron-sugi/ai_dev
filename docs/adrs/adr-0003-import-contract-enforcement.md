@@ -3,6 +3,7 @@ id: ADR-0003
 title: Enforce import placement contracts at pre-push and CI, not pre-commit
 status: accepted
 date: 2026-07-16
+domain: import-contracts
 projection: [instruction-files, hooks, ci]
 scope: repo
 rule: "lint-imports runs at pre-push and in CI; never add import contracts to pre-commit; agents run lint-imports as part of the verify/closeout step after editing */models.py or shared/**"

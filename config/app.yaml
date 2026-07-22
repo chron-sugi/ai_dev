@@ -1,0 +1,70 @@
+# =============================================================================
+# app.yaml — sync src/assets/* to Claude Code and VS Code user directories
+#
+# Sources are the single source of truth; user dirs are copy targets.
+# Path conventions:
+#   ~        -> user home (C:\Users\<you>)
+#   %APPDATA% -> C:\Users\<you>\AppData\Roaming
+# VS Code picks content type by file SUFFIX (all types share User\prompts\).
+# Claude Code picks content type by DIRECTORY (suffix is irrelevant, but the
+# filename becomes the /command name — hence the strip_suffix transforms).
+# =============================================================================
+
+source_root: "src/assets"
+
+targets:
+  prompts:
+    source: "prompts/" # *.prompt.md (and a few plain .md)
+    vscode:
+      dest: "%APPDATA%\\Code\\User\\prompts\\"
+      require_suffix: ".prompt.md" # rename plain *.md so VS Code classifies them
+    claude:
+      dest: "~/.claude/commands/"
+      strip_suffix: ".prompt" # write-adr.prompt.md -> write-adr.md -> /write-adr
+      # commands are the direct *.prompt.md equivalent; if migrating to skills
+      # later, dest becomes ~/.claude/skills/<name>/SKILL.md instead
+
+  instructions:
+    source: "instructions/" # *.instructions.md
+    vscode:
+      dest: "%APPDATA%\\Code\\User\\prompts\\" # yes, same folder — suffix decides
+      require_suffix: ".instructions.md"
+    claude:
+      dest: "~/.claude/rules/"
+      strip_suffix: ".instructions" # python-docstrings.instructions.md -> python-docstrings.md
+      # NOTE: user-level ~/.claude/rules/ support is unconfirmed in Claude docs
+      # (see docs/research/claude-code/claude-code-content-paths.yaml) — verify
+
+  agents:
+    source: "agents/" # *.agent.md
+    vscode:
+      dest: "%APPDATA%\\Code\\User\\prompts\\"
+      require_suffix: ".agent.md"
+    claude:
+      dest: "~/.claude/agents/"
+      strip_suffix: ".agent" # scaffolder.agent.md -> scaffolder.md
+
+  skills:
+    source: "skills/" # <skill-name>/SKILL.md, resources alongside; copy whole folder
+    unit: directory # unlike the flat types above, a skill is a folder, not a file
+    shared: # both tools read the SAME user directory — one copy serves both
+      dest: "~/.claude/skills/"
+    # VS Code has no user-data skills location (User\prompts\ does not apply);
+    # it discovers ~/.claude/skills/ (also ~/.copilot/skills/, ~/.agents/skills/)
+
+  hooks:
+    source: "hooks/" # *.json hook definitions ({ "EventName": [...] } fragments)
+    vscode:
+      dest: "~/.copilot/hooks/" # flat *.json copy; VS Code/Copilot CLI user hooks
+    claude:
+      dest: "~/.claude/settings.json"
+      mode: merge # NOT a copy — merge each fragment under the "hooks" key;
+      # event names differ between tools (Claude: PreToolUse/PostToolUse/...,
+      # Copilot: its own set), so hook sources likely need per-tool variants
+    # VS Code also reads hooks from ~/.claude/settings.json, so the Claude
+    # merge may serve both; keep ~/.copilot/hooks/ for Copilot-only hooks
+
+options:
+  overwrite: true # user dirs are derived artifacts; always mirror source
+  clean_orphans: false # do not delete files in dest that lack a source (may be hand-authored)
+  dry_run_default: true # copiers should preview unless explicitly told to apply

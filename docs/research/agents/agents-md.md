@@ -38,7 +38,7 @@ AGENTS.md is "a README for agents." The official site recommends sections: proje
 - **Secrets.** Keep in gitignored local files (e.g., `CLAUDE.local.md`).
 - **Aspirational/vague guidance.** "Keep code clean," "be careful," "idiomatic" — these don't translate to behavior. Write actions, not vibes.
 - **Auto-generated `/init` output used as-is.** Treat it as a discard pile of what the agent can already discover, then aggressively trim.
-- **Reasoning is the exception:** DO include the "why" behind rules that survive the toolchain-first cut — VS Code's docs and multiple studies agree the "why" improves edge-case decisions (e.g., "use `date-fns` instead of `moment.js` because moment.js is deprecated and increases bundle size").
+- **Reasoning is the exception:** DO include the "why" behind rules that survive the toolchain-first cut — VS Code's docs and multiple studies agree the "why" improves edge-case adrs (e.g., "use `date-fns` instead of `moment.js` because moment.js is deprecated and increases bundle size").
 
 ### Length / token budget
 - Every token loads on every request. Practitioner consensus: keep root files roughly 40–200 lines; split into nested files above ~150–200 lines. Per HumanLayer's "Writing a good CLAUDE.md," they keep their main repo's root file "under 60 lines," and Anthropic's docs warn "Bloated CLAUDE.md files cause Claude to ignore your actual instructions."
@@ -67,7 +67,7 @@ This is where the requester's ADR-projection system is directly validated by 202
 - **AGENTS.md is the always-loaded prose layer; it explains intent and the "why." It cannot enforce.** "AGENTS.md can say 'no direct pushes to main.' It cannot stop `git push origin main`." Prose gets rationalized away; mechanical checks don't.
 - **Enforcement hierarchy — push rules to the fastest deterministic layer:** PostToolUse hook (ms) > pre-commit (s) > CI (min) > human review (h). Blocking hooks > non-blocking warnings > behavioral nudges > prose rules.
 - **The workflow:** observe drift → codify as a lint rule / hook / golden file → strip the corresponding prose from AGENTS.md → the tool becomes the source of truth. This is exactly an ADR → projection → lint/golden-file model.
-- **ADRs belong in the repo as executable-adjacent artifacts.** They carry timestamps and status (Accepted/Superseded), so an agent can structurally judge validity. Free-form prose describing "how the system works" rots and poisons context — projecting durable ADR decisions into lint configs, golden files, and short instruction *pointers* (rather than long prose) is the correct architecture.
+- **ADRs belong in the repo as executable-adjacent artifacts.** They carry timestamps and status (Accepted/Superseded), so an agent can structurally judge validity. Free-form prose describing "how the system works" rots and poisons context — projecting durable ADR adrs into lint configs, golden files, and short instruction *pointers* (rather than long prose) is the correct architecture.
 - **Coverage reality:** one practitioner audit classified project rules as ~40% cleanly mappable to linter configs, ~20% partially, and ~40% needing custom multi-condition hooks — so hooks/custom lint rules, not prose, should carry most enforceable rules.
 - **Golden files / examples:** studies and VS Code docs agree agents respond better to concrete examples than abstract rules — point AGENTS.md at exemplar files rather than describing patterns in prose.
 
@@ -104,9 +104,9 @@ This is where the requester's ADR-projection system is directly validated by 202
 - If you used `/init`, treat its output as a discard pile of what the agent can already find; keep only the non-obvious.
 
 **Stage 2 — Wire the harness (where your ADR system pays off).**
-- Project durable ADR decisions into: (a) lint/format configs, (b) custom lint rules / AST checks for architectural boundaries, (c) golden files *referenced* (not described) from AGENTS.md, (d) pre-commit + PostToolUse hooks, (e) CI gates.
+- Project durable ADR adrs into: (a) lint/format configs, (b) custom lint rules / AST checks for architectural boundaries, (c) golden files *referenced* (not described) from AGENTS.md, (d) pre-commit + PostToolUse hooks, (e) CI gates.
 - For every recurring agent mistake, add a mechanical check and *remove* the corresponding prose. Fastest layer wins.
-- Keep a short "why + pointer" line in AGENTS.md for each enforced rule so the agent makes good edge-case decisions, but let the tool be the source of truth.
+- Keep a short "why + pointer" line in AGENTS.md for each enforced rule so the agent makes good edge-case adrs, but let the tool be the source of truth.
 
 **Stage 3 — Interop & maintenance.**
 - Make AGENTS.md canonical. Add a one-line `CLAUDE.md` with `@AGENTS.md`. In VS Code, enable `chat.useAgentsMdFile` (and `chat.useNestedAgentsMdFiles` for monorepos). Don't duplicate content between AGENTS.md and copilot-instructions.md.
@@ -267,7 +267,7 @@ AGENTS.md is "a README for agents." The official site recommends sections: proje
 - **Secrets.** Keep in gitignored local files (e.g., `CLAUDE.local.md`).
 - **Aspirational/vague guidance.** "Keep code clean," "be careful," "idiomatic" — these don't translate to behavior. Write actions, not vibes.
 - **Auto-generated `/init` output used as-is.** Treat it as a discard pile of what the agent can already discover, then aggressively trim.
-- **Reasoning is the exception:** DO include the "why" behind rules that survive the toolchain-first cut — VS Code's docs and multiple studies agree the "why" improves edge-case decisions (e.g., "use `date-fns` instead of `moment.js` because moment.js is deprecated and increases bundle size").
+- **Reasoning is the exception:** DO include the "why" behind rules that survive the toolchain-first cut — VS Code's docs and multiple studies agree the "why" improves edge-case adrs (e.g., "use `date-fns` instead of `moment.js` because moment.js is deprecated and increases bundle size").
 
 ### Length / token budget
 - Every token loads on every request. Practitioner consensus: keep root files roughly 40–200 lines; split into nested files above ~150–200 lines. Per HumanLayer's "Writing a good CLAUDE.md," they keep their main repo's root file "under 60 lines," and Anthropic's docs warn "Bloated CLAUDE.md files cause Claude to ignore your actual instructions."
@@ -296,7 +296,7 @@ This is where the requester's ADR-projection system is directly validated by 202
 - **AGENTS.md is the always-loaded prose layer; it explains intent and the "why." It cannot enforce.** "AGENTS.md can say 'no direct pushes to main.' It cannot stop `git push origin main`." Prose gets rationalized away; mechanical checks don't.
 - **Enforcement hierarchy — push rules to the fastest deterministic layer:** PostToolUse hook (ms) > pre-commit (s) > CI (min) > human review (h). Blocking hooks > non-blocking warnings > behavioral nudges > prose rules.
 - **The workflow:** observe drift → codify as a lint rule / hook / golden file → strip the corresponding prose from AGENTS.md → the tool becomes the source of truth. This is exactly an ADR → projection → lint/golden-file model.
-- **ADRs belong in the repo as executable-adjacent artifacts.** They carry timestamps and status (Accepted/Superseded), so an agent can structurally judge validity. Free-form prose describing "how the system works" rots and poisons context — projecting durable ADR decisions into lint configs, golden files, and short instruction *pointers* (rather than long prose) is the correct architecture.
+- **ADRs belong in the repo as executable-adjacent artifacts.** They carry timestamps and status (Accepted/Superseded), so an agent can structurally judge validity. Free-form prose describing "how the system works" rots and poisons context — projecting durable ADR adrs into lint configs, golden files, and short instruction *pointers* (rather than long prose) is the correct architecture.
 - **Coverage reality:** one practitioner audit classified project rules as ~40% cleanly mappable to linter configs, ~20% partially, and ~40% needing custom multi-condition hooks — so hooks/custom lint rules, not prose, should carry most enforceable rules.
 - **Golden files / examples:** studies and VS Code docs agree agents respond better to concrete examples than abstract rules — point AGENTS.md at exemplar files rather than describing patterns in prose.
 
@@ -333,9 +333,9 @@ This is where the requester's ADR-projection system is directly validated by 202
 - If you used `/init`, treat its output as a discard pile of what the agent can already find; keep only the non-obvious.
 
 **Stage 2 — Wire the harness (where your ADR system pays off).**
-- Project durable ADR decisions into: (a) lint/format configs, (b) custom lint rules / AST checks for architectural boundaries, (c) golden files *referenced* (not described) from AGENTS.md, (d) pre-commit + PostToolUse hooks, (e) CI gates.
+- Project durable ADR adrs into: (a) lint/format configs, (b) custom lint rules / AST checks for architectural boundaries, (c) golden files *referenced* (not described) from AGENTS.md, (d) pre-commit + PostToolUse hooks, (e) CI gates.
 - For every recurring agent mistake, add a mechanical check and *remove* the corresponding prose. Fastest layer wins.
-- Keep a short "why + pointer" line in AGENTS.md for each enforced rule so the agent makes good edge-case decisions, but let the tool be the source of truth.
+- Keep a short "why + pointer" line in AGENTS.md for each enforced rule so the agent makes good edge-case adrs, but let the tool be the source of truth.
 
 **Stage 3 — Interop & maintenance.**
 - Make AGENTS.md canonical. Add a one-line `CLAUDE.md` with `@AGENTS.md`. In VS Code, enable `chat.useAgentsMdFile` (and `chat.useNestedAgentsMdFiles` for monorepos). Don't duplicate content between AGENTS.md and copilot-instructions.md.

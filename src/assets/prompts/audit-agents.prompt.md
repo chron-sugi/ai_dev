@@ -1,4 +1,5 @@
 ---
+agent: explorer
 description: 'Audit GitHub Copilot custom agent files (*.agent.md) against July 2026 content-design best practices. Read-only. Produces a severity-tiered issue report with a recommended fix and target layer for every finding. Does not edit any file.'
 ---
 
@@ -47,7 +48,7 @@ Each agent body should contain, in some recognizable form:
 - **C2. Lint Leakage.** Rules a linter/formatter/type-checker already enforces (verify against repo lint config where present). Fix = delete; the tool owns it. Severity: P2.
 - **C3. Skill Leakage.** Bulky, rarely-used procedures (migration handbooks, framework how-tos, multi-step runbooks) inlined in the agent body. Fix = move to a `SKILL.md`; reference with a trigger condition. Severity: P1.
 - **C4. Blind Reference.** File paths or docs referenced without stating *why and when* to read them. Fix = add a trigger ("Read `docs/adr/` before proposing any cross-package change because…"). Severity: P2.
-- **C5. Inlined durable decisions.** ADR content, architecture rationale, or decision records pasted into the agent instead of referenced. Fix = move to `docs/adr/` (or existing ADR), reference with a why/when note. Severity: P1.
+- **C5. Inlined durable adrs.** ADR content, architecture rationale, or decision records pasted into the agent instead of referenced. Fix = move to `docs/adr/` (or existing ADR), reference with a why/when note. Severity: P1.
 - **C6. Volatile facts.** Version numbers, URLs, ticket IDs, dates, or people that will go stale. Fix = remove or relocate to a maintained layer. Severity: P2.
 - **C7. Deterministic policy expressed only in prose.** Safety- or scope-critical rules ("never edit generated files", "only write to docs/", "never push to main", "reviewer must not edit code") that a PreToolUse hook, lint rule, or CI check could enforce, with no corresponding mechanical enforcement found. Prose guides probabilistic behavior; hooks enforce outcomes. Fix = add the hook/CI check; keep at most a one-line prose echo. Severity: P0 for destructive/scope rules, P1 otherwise.
 - **C8. Init Fossilization.** Auto-generated content never revised (boilerplate mismatching the actual repo, references to files that don't exist). Severity: P2.

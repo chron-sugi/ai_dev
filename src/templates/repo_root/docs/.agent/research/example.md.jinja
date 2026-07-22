@@ -33,7 +33,7 @@ in the concept doc, including:
 
 | Path | What it does | Why this task touches it |
 |---|---|---|
-| `apps/api/src/app/domain/user.py:1-113` | User entity + lifecycle methods | Already has `soft_delete()`; needs review against the new requirements |
+| `apps/api/src/app/domains/user.py:1-113` | User entity + lifecycle methods | Already has `soft_delete()`; needs review against the new requirements |
 | `apps/api/src/app/models/user.py` (TBD) | SQLAlchemy ORM model | Needs `deleted_at` column + index for the 90-day pruner |
 | `apps/api/alembic/versions/*` | Migration history | New migration adds `deleted_at` |
 | `apps/api/src/app/api/v1/routes/users.py` (TBD) | HTTP routes | Needs `DELETE /users/{id}` endpoint |

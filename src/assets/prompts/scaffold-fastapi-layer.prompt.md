@@ -1,3 +1,8 @@
+---
+agent: scaffolder
+description: Scaffold the once-per-repo FastAPI API layer per the approved ADR, with enforced layer ordering and golden files for per-feature router work.
+---
+
 # Scaffold: FastAPI API layer
 
 You are scaffolding the HTTP API layer for this repository. This is a
