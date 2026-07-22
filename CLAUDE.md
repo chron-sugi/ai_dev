@@ -3,7 +3,7 @@
 ## Key folders
 
 - `docs/adrs/` — Architecture Decision Records. The source of truth for architectural decisions.
-- `docs/domain/` — Domain documentation (`INDEX.md`, per-domain `CONCEPT.md` / `CONTRACT.md`).
+- `docs/domains/` — Domain documentation (per-domain `CONCEPT.md` / primary `CONTRACT.yaml`).
 
 ## Rules
 

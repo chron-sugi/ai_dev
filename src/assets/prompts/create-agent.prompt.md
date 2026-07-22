@@ -1,14 +1,14 @@
 ---
 name: create-agent
-description: "Scaffold a new custom agent (.github/agents/<name>.agent.md) from a required input contract. Refuses to generate with missing or vague inputs."
+description: "Scaffold a new custom agent (.github/agents/<name>.velocai.md) from a required input contract. Refuses to generate with missing or vague inputs."
 agent: agent
-argument-hint: "agentName=<kebab-case> mission=<one sentence> routing=<when to invoke + artifact + boundary> inputs=<preconditions + missing-input behavior> output=<.agent/<task-id>/ path + status vocab> tools=<explicit child tool names> nonGoals=<2+ items> stopping=<conditions + cycle cap> [model=<id>] [userInvocable=false]"
+argument-hint: "agentName=<kebab-case> mission=<one sentence> routing=<when to invoke + artifact + boundary> inputs=<preconditions + missing-input behavior> output=<.velocai/<task-id>/ path + status vocab> tools=<explicit child tool names> nonGoals=<2+ items> stopping=<conditions + cycle cap> [model=<id>] [userInvocable=false]"
 ---
 
 # Task
 
 Generate a new GitHub Copilot custom agent definition file at
-`.github/agents/${input:agentName}.agent.md`.
+`.github/agents/${input:agentName}.velocai.md`.
 
 You are generating a **role contract**, not documentation. Follow the
 generation template and validation rules below exactly. Do not add
@@ -27,7 +27,7 @@ one clarifying question each. Never invent defaults.
 | Mission (one sentence) | `${input:mission:one imperative sentence}` | Single sentence, imperative |
 | Routing description — when to invoke this agent, what artifact it returns, and its boundary vs. adjacent agents | `${input:routing:when to invoke + artifact returned + boundary vs adjacent agents}` | Must fail the vagueness test: "helpful assistant"-style text is rejected |
 | Inputs / preconditions, and behavior when they are missing (ask / investigate / return BLOCKED / hand back) | `${input:inputs:preconditions + explicit missing-input behavior}` | Missing-input behavior must be explicit |
-| Output artifact: file path under `.agent/<task-id>/`, plus status vocabulary (e.g. `COMPLETE \| BLOCKED \| NEEDS_REVIEW`) | `${input:output:.agent/<task-id>/<file> + closed status vocabulary}` | Path + closed status vocabulary both present |
+| Output artifact: file path under `.velocai/<task-id>/`, plus status vocabulary (e.g. `COMPLETE \| BLOCKED \| NEEDS_REVIEW`) | `${input:output:.velocai/<task-id>/<file> + closed status vocabulary}` | Path + closed status vocabulary both present |
 | Tool allowlist (explicit child tool names, e.g. `read`, `search/codebase`, `runInTerminal` — never umbrella groups like `terminal`) | `${input:tools:comma-separated explicit child tool names}` | Minimal for the role; explicit names only |
 | Non-goals / never-do list | `${input:nonGoals:2+ concrete never-do items}` | At least 2 concrete items |
 | Stopping conditions and cycle caps (when done; max loop iterations before human escalation) | `${input:stopping:done conditions + numeric cycle cap}` | Numeric cap required if role participates in a review loop |
@@ -68,7 +68,7 @@ tools: [<allowlist>]
 <≈5 phases as short guidance, e.g. Understand → Investigate → Draft → Self-check → Report. No line-by-line program.>
 
 ## Output
-Write <artifact> to `.agent/<task-id>/<filename>`.
+Write <artifact> to `.velocai/<task-id>/<filename>`.
 Report: status (<vocabulary>), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when
@@ -84,7 +84,7 @@ Reject your own draft and revise if any check fails:
 3. `tools` contains only explicit child tool names; total tool count is minimal for the role.
 4. No content that belongs in another layer: no lint-enforceable style rules, no repo-wide conventions (those live in instructions files), no orchestration mechanics, no ADR content restated as prose.
 5. Imperative voice throughout; `IMPORTANT`/`YOU MUST` used at most twice.
-6. Exactly one output artifact path, under `.agent/<task-id>/`.
+6. Exactly one output artifact path, under `.velocai/<task-id>/`.
 7. Status vocabulary is a closed set.
 
 ## After generation

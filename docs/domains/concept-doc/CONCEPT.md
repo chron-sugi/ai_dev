@@ -18,11 +18,11 @@ and their rationale; the code below them holds everything derivable by
 reading it. A concept doc exists only for knowledge that fits neither: too
 explanatory for an ADR, too expensive to reconstruct from code.
 
-Concept docs live in two places, split by scope (ADR-0009). Domain-scoped
+Concept docs live in two places, split by scope (ADR-0017). Domain-scoped
 knowledge lives at `docs/domains/<domain>/CONCEPT.md` — fixed filename, the
-folder is the identifier — beside a sibling `CONTRACT.md` that registers the
-domain's current contract (declared surface, endpoints, granted edges), each
-entry linking its granting ADR. Cross-cutting knowledge that no single domain
+folder is the identifier — beside a sibling `CONTRACT.yaml` that defines the
+domain's current executable contract (declared surface, endpoints, granted
+edges), with optional ADR provenance. Cross-cutting knowledge that no single domain
 owns lives as `docs/concepts/<name>.md`, where the filename is the
 identifier. The schema and content bars are identical in both locations;
 only placement and naming differ.
@@ -45,7 +45,7 @@ status field, because presence in a canonical location *means* active and
 canonical.
 
 Owns the knowledge tier's format and lifecycle; decision records belong to
-`docs/adrs/`, contract state belongs to the domain's `CONTRACT.md`, agent
+`docs/adrs/`, contract state belongs to the domain's `CONTRACT.yaml`, agent
 behavior rules belong to instruction files, and the distillation workflow
 itself belongs to the closeout prompts.
 
@@ -56,14 +56,13 @@ itself belongs to the closeout prompts.
   concept. Two documents claiming overlapping territory breaks
   canonical-ness — the routing question must be resolved (merge or split)
   before content lands, not after.
-- Placement is decided by scope, not preference (ADR-0009): knowledge owned
+- Placement is decided by scope, not preference (ADR-0017): knowledge owned
   by one domain goes to that domain's CONCEPT.md; `docs/concepts/` admits
   only knowledge no single domain owns. A domain-shaped file appearing in
   `docs/concepts/` is a routing error, not a second home.
 - A domain's CONCEPT.md never absorbs contract state. Surface, endpoints,
-  and dependency edges belong to the sibling CONTRACT.md, which is a
-  registry of ADR-granted facts — every entry cites its granting ADR, and
-  the contract file is never the write path for a new grant (ADR-0009).
+  and dependency edges belong to the sibling CONTRACT.yaml, which is the
+  primary executable specification; ADR provenance is optional (ADR-0017).
 - Concept docs never project. If distilled content wants to become an
   always-loaded rule, it is an ADR or instruction-file entry wearing the
   wrong extension; the two-field frontmatter is deliberately too poor to

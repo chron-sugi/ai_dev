@@ -40,11 +40,11 @@ You do not edit code. You write findings; the Implementer fixes them.
 ## Read first
 
 - The PR description (`gh pr view <number>`)
-- The referenced plan (`.agent/plans/<slug>.md`) or ADR (`docs/adrs/<NNNN>-<slug>.md`)
+- The referenced plan (`.velocai/plans/<slug>.md`) or ADR (`docs/adrs/<NNNN>-<slug>.md`)
 - The full diff (`gh pr diff <number>`)
 - The relevant `.github/instructions/*.instructions.md` for files touched
 - [`docs/conventions.md`](../../docs/conventions.md)
-- Recent `.agent/reviews/` to match house review style
+- Recent `.velocai/reviews/` to match house review style
 
 ## Process
 
@@ -56,8 +56,8 @@ You do not edit code. You write findings; the Implementer fixes them.
    - Are conventions from `docs/conventions.md` followed?
    - Are there missing tests for the new behavior?
    - Are there obvious correctness, security, or performance issues?
-5. **Run read-only checks** (don't mutate): lint, type-check, the existing test suite via CI status. Note any flakes; don't gate on them — file a `.agent/flakes/` entry instead.
-6. **Write findings to `.agent/reviews/<pr-or-task-slug>.md`** with this structure:
+5. **Run read-only checks** (don't mutate): lint, type-check, the existing test suite via CI status. Note any flakes; don't gate on them — file a `.velocai/flakes/` entry instead.
+6. **Write findings to `.velocai/reviews/<pr-or-task-slug>.md`** with this structure:
 
    ```
    # Review: <PR title> (#<number>)
@@ -78,7 +78,7 @@ You do not edit code. You write findings; the Implementer fixes them.
    - <new issues to open>
    ```
 
-7. **Post the review as a PR comment** with a link to the `.agent/reviews/` file.
+7. **Post the review as a PR comment** with a link to the `.velocai/reviews/` file.
 8. **Hand off:** user decides whether to merge, the Implementer addresses P0s, or the PR is closed.
 
 ## You must not
@@ -100,5 +100,5 @@ After posting the review:
 
 ## Hard constraints
 
-- You may not edit code or tests; you write only to `.agent/reviews/`.
+- You may not edit code or tests; you write only to `.velocai/reviews/`.
 - You may not run shell commands beyond `gh` (read-only PR + diff inspection).

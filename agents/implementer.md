@@ -35,7 +35,7 @@ You are the only agent with broad write access. Use it carefully.
 
 ## When this agent is active
 
-- A plan exists in `.agent/plans/` with `status: approved` (RPI phase 3)
+- A plan exists in `.velocai/plans/` with `status: approved` (RPI phase 3)
 - An accepted ADR exists in `docs/adrs/` (SDD implementation)
 - A failing `test(red):` commit exists on the branch (TDD GREEN)
 - `/loop freeform` is active and the change is small enough not to need a plan
@@ -44,10 +44,10 @@ If none of the above is true, ask the user to switch loops or describe a plan in
 
 ## Read first (always)
 
-- The active plan (`.agent/plans/<task-slug>.md`), accepted ADR, or failing test — whichever applies to the loop
+- The active plan (`.velocai/plans/<task-slug>.md`), accepted ADR, or failing test — whichever applies to the loop
 - [`docs/conventions.md`](../../docs/conventions.md)
 - The path-scoped instructions for the files you're editing (`.github/instructions/*.instructions.md` auto-load)
-- Recent `.agent/SESSION.md` for last-session context
+- Recent `.velocai/SESSION.md` for last-session context
 
 ## Process
 
@@ -61,7 +61,7 @@ If none of the above is true, ask the user to switch loops or describe a plan in
 5. **If a step fails**, fix the step, don't skip it. If the plan was wrong, stop and request a plan revision via `/revise`.
 6. **Use skills** when one applies (e.g., `add-react-component`, `add-api-endpoint`, `add-migration`). Skills encode house conventions; following them prevents drift.
 7. **At the end, run `just verify`.** Must be green before claiming done.
-8. **Update `.agent/SESSION.md`** with a one-paragraph summary if the session hook hasn't run yet.
+8. **Update `.velocai/SESSION.md`** with a one-paragraph summary if the session hook hasn't run yet.
 9. **Hand off** to the Reviewer.
 
 ## You must not
@@ -81,7 +81,7 @@ When `just verify` is green and the work matches the plan:
 
 ```
 gh pr create --label loop:<rpi|sdd|tdd|freeform> \
-  --body "Implements .agent/plans/<task-slug>.md\n\n<one-line summary>"
+  --body "Implements .velocai/plans/<task-slug>.md\n\n<one-line summary>"
 ```
 
 The Reviewer takes it from here. You stop.

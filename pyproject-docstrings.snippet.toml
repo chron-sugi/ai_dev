@@ -17,7 +17,7 @@ fail-under = 100
 ignore-init-method = false
 ignore-magic = true          # __repr__ etc. — signature is the contract
 ignore-nested-functions = false
-exclude = ["tests", ".agent", "migrations"]
+exclude = ["tests", ".velocai", "migrations"]
 verbose = 1
 
 # --- Merge into .pre-commit-config.yaml ---

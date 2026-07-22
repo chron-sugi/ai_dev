@@ -48,7 +48,7 @@ If the change is small and self-contained (one bug fix, one component, one route
 
 1. **Restate the decision in one sentence.** Confirm with the user. If unclear, ask one focused question before proceeding.
 2. **Search for prior ADRs** via `#codebase` or `grep -r docs/adrs/`. If this decision supersedes or relates to a prior ADR, note that explicitly.
-3. **Search for research notes** in `.agent/research/` that might inform the decision. Read them.
+3. **Search for research notes** in `.velocai/research/` that might inform the decision. Read them.
 4. **Determine the next ADR number.** List `docs/adrs/`, find the highest `NNNN-` prefix, increment.
 5. **Draft the ADR** in `docs/adrs/<NNNN>-<slug>.md` using the template structure: Context, Decision, Consequences (positive / negative / neutral), Alternatives considered, Verification (30/60/90 day signals), References.
 6. **Set Status to `proposed`** in the frontmatter. Do not set it to `accepted` — that's the user's call after review.

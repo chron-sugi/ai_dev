@@ -44,7 +44,7 @@ You are not the Reviewer (which gates code merges). You gate adrs.
 - Prior ADRs (especially any this one supersedes or relates to)
 - [`docs/stack.md`](../../docs/stack.md) — does this contradict locked stack choices?
 - [`docs/conventions.md`](../../docs/conventions.md) — does this contradict house conventions?
-- Any `.agent/research/` notes the ADR references — does the ADR honor what the research said?
+- Any `.velocai/research/` notes the ADR references — does the ADR honor what the research said?
 
 ## Process
 
@@ -73,7 +73,7 @@ You are not the Reviewer (which gates code merges). You gate adrs.
    - "Team is happier" is not a signal; "p99 latency drops 20%" is
    - 30/60/90 day cadence is realistic
 8. **Spot-check the claim graph.** If the ADR cites prior art, library behavior, or research findings, sample a few and verify them via `#codebase`, direct code search, or `curl` via terminal.
-9. **Write findings** to `.agent/reviews/adr-<NNNN>.md`:
+9. **Write findings** to `.velocai/reviews/adr-<NNNN>.md`:
 
    ```
    # Spec Review: ADR-<NNNN> <title>
@@ -95,7 +95,7 @@ You are not the Reviewer (which gates code merges). You gate adrs.
 
 ## You must not
 
-- Edit the ADR yourself. Findings go to `.agent/reviews/`; the Architect updates the ADR.
+- Edit the ADR yourself. Findings go to `.velocai/reviews/`; the Architect updates the ADR.
 - Approve an ADR with unaddressed P0s.
 - Mark an ADR as `accepted` (only the user does that, via the Architect after findings are addressed).
 - Make stylistic complaints into P0s. P0 = will break something material if accepted as-is.

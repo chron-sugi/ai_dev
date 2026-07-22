@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=../../../src/app/config/schemas/domain-contract.schema.json
+schema_version: 2
+domain: concept-doc
+status: approved
+summary: Current layout and ownership rules for domain concept documentation and contracts.
+rules:
+  - id: R-001
+    statement: Document each domain with CONCEPT.md and a primary CONTRACT.yaml under docs/domains/<domain>/.
+    adr: ADR-0017
+  - id: R-002
+    statement: Keep cross-cutting concepts in docs/concepts rather than assigning them to an unrelated domain.
+    adr: ADR-0017
+adr_provenance:
+  - id: ADR-0017
+    path: docs/adrs/adr-0017-primary-yaml-domain-contracts.md
+rejected_alternatives:
+  - choice: Markdown domain contracts
+    reason: Free-form prose cannot serve as a deterministic, validated scaffolding input.
+unresolved_gaps: []
+approval:
+  actor: human
+  name: project-owner
+  approved_at: 2026-07-22T00:00:00-04:00

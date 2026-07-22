@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../../src/app/config/schemas/domain-contract.schema.json
+schema_version: 2
+domain: adr-pipeline
+status: approved
+summary: Current executable rules for ADR storage, projection, and pipeline entry points.
+rules:
+  - id: R-001
+    statement: Record durable architectural rationale in individual ADRs; never create a monolithic constitution file.
+    adr: ADR-0004
+  - id: R-002
+    statement: Preserve ADRs as the permanent reasoning source after projecting their rules.
+    adr: ADR-0005
+  - id: R-003
+    statement: Generate agent-facing rule surfaces through the projection pipeline; never hand-edit generated regions.
+    adr: ADR-0006
+  - id: R-004
+    statement: Cluster projected rules by their declared domain and cite the source ADR on every projected line.
+    adr: ADR-0007
+  - id: R-005
+    statement: Run ADR pipeline operations through justfile recipes rather than invoking implementation scripts directly.
+    adr: ADR-0008
+adr_provenance:
+  - id: ADR-0017
+    path: docs/adrs/adr-0017-primary-yaml-domain-contracts.md
+  - id: ADR-0004
+    path: docs/adrs/adr-0004-no-constitution-file.md
+  - id: ADR-0005
+    path: docs/adrs/adr-0005-adrs-are-the-source-of-truth-after-projection.md
+  - id: ADR-0006
+    path: docs/adrs/adr-0006-generated-surfaces-are-never-hand-edited.md
+  - id: ADR-0007
+    path: docs/adrs/adr-0007-domain-clustered-projection.md
+  - id: ADR-0008
+    path: docs/adrs/adr-0008-justfile-is-the-single-pipeline-definition.md
+rejected_alternatives:
+  - choice: Markdown current-state registry
+    reason: Markdown cannot provide schema validation or deterministic scaffolder inputs.
+unresolved_gaps: []
+approval:
+  actor: human
+  name: project-owner
+  approved_at: 2026-07-22T00:00:00-04:00

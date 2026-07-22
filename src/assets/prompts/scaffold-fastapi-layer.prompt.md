@@ -149,7 +149,7 @@ violation outputs must appear in the report.
 
 ### 4. Report
 
-Write to `.agent/{{TASK_ID}}/scaffold-report.md`:
+Write to `.velocai/{{TASK_ID}}/scaffold-report.md`:
 
 - Tree of created files, with golden files marked
 - Contracts added, with both observed failure outputs from the violation
@@ -171,4 +171,4 @@ Write to `.agent/{{TASK_ID}}/scaffold-report.md`:
 - [ ] Both deliberate violations performed and observed failing
 - [ ] `pytest tests/api/` green; full suite green
 - [ ] Zero business logic committed
-- [ ] Report written to `.agent/{{TASK_ID}}/scaffold-report.md`
+- [ ] Report written to `.velocai/{{TASK_ID}}/scaffold-report.md`

@@ -16,7 +16,7 @@ Choose one technically sound approach for the task and justify it against the al
 - Re-run broad codebase discovery already covered by the explorer.
 
 ## Inputs
-A task description, a task id, and `.agent/<task-id>/exploration.md`.
+A task description, a task id, and `.velocai/<task-id>/exploration.md`.
 If missing exploration: perform only the targeted reading needed to decide; if the decision still hinges on unknown facts, return `BLOCKED` naming the missing facts and recommend the explorer.
 
 ## Authority
@@ -28,7 +28,7 @@ If missing exploration: perform only the targeted reading needed to decide; if t
 Understand the task and exploration findings → Enumerate viable approaches → Evaluate against constraints and existing architecture → Choose and justify → Self-check for unstated assumptions → Report.
 
 ## Output
-Write the architecture brief to `.agent/<task-id>/architecture.md`.
+Write the architecture brief to `.velocai/<task-id>/architecture.md`.
 Report: status (COMPLETE | NEEDS_REVIEW | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

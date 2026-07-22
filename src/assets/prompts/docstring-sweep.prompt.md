@@ -25,7 +25,7 @@ a bug, record it in the inventory file — do not touch it.
    interrogate -v .
    ruff check --select D .
    ```
-2. Write `.agent/<task-id>/docstring-inventory.md` containing:
+2. Write `.velocai/<task-id>/docstring-inventory.md` containing:
    - **Coverage summary**: overall %, per-package %.
    - **Symbol table**: one row per missing or defective docstring —
      `path :: symbol | construct type | state | priority`.
@@ -106,5 +106,5 @@ another reason; format-only churn is out of scope for this sweep.
 - Update the inventory file with final coverage % and the unresolved
   ambiguity list.
 - Commit in module-sized commits: `docs(docstrings): <package> per ADR-0001`.
-- The inventory file follows the standard `.agent/` lifecycle — it is
+- The inventory file follows the standard `.velocai/` lifecycle — it is
   review material, removed at task closeout.

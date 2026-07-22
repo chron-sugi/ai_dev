@@ -1,0 +1,1 @@
+"""VelocAI application package."""

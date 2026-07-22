@@ -1,6 +1,6 @@
 ---
 agent: scaffolder
-description: Domain payload for the scaffolder agent — scaffold a Python domain package in the rung layout from an approved ADR.
+description: Scaffold a Python domain package from the backend block of an approved CONTRACT.yaml.
 ---
 
 # Domain prompt: Python domain package (rung layout)
@@ -10,15 +10,17 @@ omission rule, verification discipline, report format, stop conditions) is
 defined in the agent definition — this prompt supplies only what is
 specific to Python domain packages.
 
-## Binding ADR sections
+## Binding contract declarations
 
-- `rule` field — the package charter
-- Declared Python surface (names exported from the package root)
-- HTTP endpoints, if any
-- Non-HTTP entry points (recovery, scheduled, CLI), if any
-- Environment tunables, if any
-- Granted cross-package dependency edges (default: none)
-- Rejected alternatives
+- `rules` — the package charter and constraints
+- `backend.package` and `backend.public_api` — package name and exact exports
+- Root `types` — models, enums (including StrEnum), errors, and aliases;
+  backend vocabulary is generated in `models.py`/`errors.py`
+- Root `invariants` — truths the generated backend must preserve
+- Optional backend blocks — presence activates their corresponding modules
+- `http.backend.endpoint_ids` — package-provided root `http.endpoints`
+- `dependencies.backend` — granted cross-package edges; absence means none
+- `rejected_alternatives` and optional `adr_provenance`
 
 ## Assumed-present repo state
 
@@ -83,17 +85,17 @@ and this rule is dormant. No per-function exceptions in either state.
 
 ## Conditional criteria
 
-Resolve each from the ADR's declarations.
+Resolve each only from optional block presence under `backend` and `http.backend`.
 
 | Module | Create when… | Otherwise |
 |---|---|---|
-| `tables.py` + `store.py` | The ADR gives the package persistent state. Always together. | Omit both; pure-logic package. |
-| `service.py` | At least one declared surface function will (a) coordinate more than one store call, (b) enforce a domain invariant, or (c) require logic beyond a 1:1 store-call-to-model mapping. Judge from the declared surface, not imagination. | Omit. Port 1 re-exports store functions directly; consumers cannot tell the difference. |
-| `config.py` | The ADR names environment-sourced tunables (retention windows, limits, external endpoints, toggles). | Omit. Never for constants — domain constants are vocabulary → `models.py`. |
-| `api/` | The ADR declares HTTP endpoints. | Omit entirely. No empty adapter "for later". |
-| `api/dependencies.py` | An adapter `Depends` provider must import this package's own rungs. | Omit. Kernel-only providers import `app.api.dependencies` directly. |
-| `jobs.py` | The ADR names non-HTTP entry points. (Any `running`-state pattern in store implies a recovery routine — check.) | Omit. Never park scheduled work in `api/` or `store.py`. |
-| `testing.py` | The ADR grants another package an edge on this one, OR adapter dependencies will be overridden in consumer tests. | Omit for unconsumed leaves; add in the same commit that grants the first inbound edge. |
+| `tables.py` + `store.py` | `backend.persistence` is present. Always create together. | Omit both; pure-logic package. |
+| `service.py` | `backend.service` is present; create exactly its operations. | Omit. Port 1 may re-export declared store-backed operations directly. |
+| `config.py` | `backend.config` is present; create exactly its tunables. | Omit. Never use it for constants. |
+| `api/` | `http.backend` is present; implement exactly its selected root endpoints. | Omit entirely. No empty adapter "for later". |
+| `api/dependencies.py` | `http.backend.dependency_providers` is non-empty. | Omit. Kernel-only providers import `app.api.dependencies` directly. |
+| `jobs.py` | `backend.jobs` is present; create exactly its entries. | Omit. Never park scheduled work in `api/` or `store.py`. |
+| `testing.py` | `backend.testing` is present; create exactly its exports. | Omit. |
 
 **Never create**: `utils.py`, `helpers.py`, `constants.py`, `enums.py`,
 `types.py`, root-level `schemas.py` ("schema" is reserved for the HTTP
@@ -103,7 +105,9 @@ adapter), `repositories.py`, any `_internal/` directory.
 
 - Rung order is absolute. `errors.py`, `models.py`, `config.py` import
   nothing package-internal.
-- Port 1 returns `models.py` types. SQLAlchemy `Row` objects never cross
+- Port 1 returns root `types` projected into `models.py`. StrEnum, Enum, and
+  IntEnum declarations live in `models.py`, never a separate `enums.py`.
+  SQLAlchemy `Row` objects never cross
   `__init__.py`.
 - Intra-package imports are direct and relative (`from ..service import x`).
   Never `from app.{{PACKAGE}} import x` inside the package: port 1 is an
@@ -120,12 +124,13 @@ adapter), `repositories.py`, any `_internal/` directory.
   package's rungs (relative) and the shared HTTP kernel
   (`app.api.dependencies`, `app.api.errors`); never `app.api.router`,
   never another package's rungs.
-- Cross-package imports: only ADR-granted edges, only via port 1.
+- Cross-package imports: only `dependencies.backend`, only via port 1, with a
+  contract rule/provenance citation.
 
 ## Golden files
 
-If `api/` is created: ONE working route end-to-end — the simplest route the
-ADR declares. A stub dependency is acceptable where the service function is
+If `api/` is created: ONE working route end-to-end — the first endpoint ID in
+`http.backend.endpoint_ids`, resolved through root `http.endpoints`. A stub dependency is acceptable where the service function is
 `NotImplementedError`, but the request/response schema round-trip must be
 real. This route is the imitation target for all future routes in the
 package.
@@ -179,8 +184,9 @@ package scaffolded without it, adding this contract is part of that task.)
 Amendments to shared contracts:
 
 - **Independence**: add `app.{{PACKAGE}}` to the repo-wide independent-
-  modules list. ADR-granted edges become the contract's declared exceptions,
-  commented with the ADR id. No per-edge forbidden contracts.
+  modules list. `dependencies.backend` become the contract's declared
+  exceptions, commented with a contract rule/provenance citation. No per-edge
+  forbidden contracts.
 - **Testing** (iff `testing.py`): extend the repo-wide testing-module
   contract — `app.* -> app.{{PACKAGE}}.testing` forbidden. Test trees are
   outside contract scope and unaffected.
@@ -189,8 +195,8 @@ Amendments to shared contracts:
 
 Mirror placement: `tests/{{PACKAGE}}/`.
 
-- Surface test: `import app.{{PACKAGE}}` succeeds; `__all__` matches the
-  ADR-declared names exactly.
+- Surface test: `import app.{{PACKAGE}}` succeeds; `__all__` matches
+  `backend.public_api` exactly.
 - Iff `api/`: golden test for the golden route via the shared conftest
   pattern (`httpx.AsyncClient` + `ASGITransport`, `dependency_overrides`).
   Zero `mock.patch` anywhere under `tests/{{PACKAGE}}/`.
@@ -221,7 +227,7 @@ One per contract class; capture each failure output per protocol.
 
 ## Domain acceptance criteria
 
-- [ ] Port 1 exports match ADR-declared names exactly; if `service.py`
+- [ ] Port 1 exports match `backend.public_api` exactly; if `service.py`
       exists, port 1 re-exports service functions only
 - [ ] No never-create modules present
 - [ ] All intra-package imports relative; zero `from app.{{PACKAGE}} import`

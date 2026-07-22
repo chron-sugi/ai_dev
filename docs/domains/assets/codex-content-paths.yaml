@@ -1,0 +1,175 @@
+# =============================================================================
+# OpenAI Codex customization content and local state - default file locations
+# Researched 2026-07-22 against the official Codex manual
+# (learn.chatgpt.com/docs; Codex 0.138.0-era documentation).
+#
+# KEY FACTS:
+#   - CODEX_HOME defaults to ~/.codex on Windows, macOS, and Linux. It can be
+#     relocated, but the target directory must already exist.
+#   - User config/state and portable authoring content use different roots:
+#       * config, auth, agents, hooks, rules, and state: $CODEX_HOME
+#       * directly authored skills and marketplace catalogs: ~/.agents
+#   - Trusted project config, agents, hooks, and rules live in .codex/.
+#     Project skills and marketplace catalogs live in .agents/.
+#   - MCP servers are configured inside config.toml. There is no standalone
+#     user or project mcp.json; .mcp.json is a plugin-bundle file only.
+#   - AGENTS.md is the always-on instruction format. Codex layers global
+#     guidance with one instruction file per directory from repo root to CWD.
+# =============================================================================
+
+codex_roots:
+  user:
+    default: "~/.codex/"
+    windows: "%USERPROFILE%\\.codex\\"
+    macos: "~/.codex/"
+    linux: "~/.codex/"
+    env_override: "CODEX_HOME"
+  portable_user_content: "~/.agents/"
+  project_config: "<project>/.codex/"
+  project_portable_content: "<project>/.agents/"
+  system:
+    unix: "/etc/codex/" # documented for Linux and macOS
+    windows_requirements: "%ProgramData%\\OpenAI\\Codex\\"
+
+paths:
+  instructions: # always-on guidance; plain Markdown, no required frontmatter
+    suffix:
+      preferred: "AGENTS.md"
+      override: "AGENTS.override.md"
+    global:
+      preferred: "$CODEX_HOME/AGENTS.md"
+      override: "$CODEX_HOME/AGENTS.override.md"
+    project:
+      - "<repo>/AGENTS.md"
+      - "<repo>/AGENTS.override.md"
+      - "<repo>/<subdir>/AGENTS.md"
+      - "<repo>/<subdir>/AGENTS.override.md"
+    discovery: "global first; then one file per directory from repo root through CWD"
+    per_directory_order: "AGENTS.override.md -> AGENTS.md -> configured fallback names"
+    settings: [project_doc_fallback_filenames, project_doc_max_bytes, project_root_markers]
+    note: "At global scope, a non-empty AGENTS.override.md replaces AGENTS.md. Project files layer root-to-CWD; closer guidance wins."
+
+  config:
+    suffix: "config.toml"
+    user: "$CODEX_HOME/config.toml"
+    workspace: "<dir>/.codex/config.toml" # every layer from project root to CWD
+    system:
+      unix: "/etc/codex/config.toml"
+      windows: null # no Windows system-config path documented; user/project config still apply
+    precedence: "CLI overrides -> project (closest wins) -> selected profile -> user -> Unix system -> built-ins"
+    note: "Project .codex layers load only for trusted projects."
+
+  profiles:
+    suffix: "<profile-name>.config.toml"
+    user: "$CODEX_HOME/<profile-name>.config.toml"
+    select: "codex --profile <profile-name>"
+    note: "Since Codex 0.134.0, profiles are separate files; [profiles.*] in config.toml is no longer read."
+
+  agents: # custom subagent roles; TOML, not Markdown agent manifests
+    suffix: "*.toml"
+    user: "$CODEX_HOME/agents/"
+    workspace: "<dir>/.codex/agents/"
+    note: "Each file defines a named agent. Project files may be referenced from that layer's config.toml."
+
+  skills:
+    suffix: "<skill-name>/SKILL.md"
+    user_authoring: "~/.agents/skills/"
+    codex_managed_install: "$CODEX_HOME/skills/" # used by local skill installers and bundled/managed skill state
+    workspace:
+      - "$CWD/.agents/skills/"
+      - "$CWD/../.agents/skills/" # and each ancestor through the repository root
+      - "$REPO_ROOT/.agents/skills/"
+    admin:
+      unix: "/etc/codex/skills/"
+    plugin: "<plugin-root>/skills/<skill-name>/SKILL.md"
+    optional_metadata: "<skill-root>/agents/openai.yaml"
+    note: "Use ~/.agents/skills for portable direct authoring. Repository discovery walks from CWD up to the repo root; Codex also manages installed and bundled skills under CODEX_HOME."
+
+  hooks:
+    suffix: "hooks.json or inline [hooks] in config.toml"
+    user:
+      - "$CODEX_HOME/hooks.json"
+      - "$CODEX_HOME/config.toml"
+    workspace:
+      - "<dir>/.codex/hooks.json"
+      - "<dir>/.codex/config.toml"
+    system_unix:
+      - "/etc/codex/hooks.json"
+      - "/etc/codex/config.toml"
+    plugin: "<plugin-root>/hooks/hooks.json"
+    note: "All matching hook sources compose; project hooks require project trust."
+
+  rules: # experimental command execution policy, written in Starlark
+    suffix: "*.rules"
+    user: "$CODEX_HOME/rules/" # TUI allow-list additions go to rules/default.rules
+    workspace: "<dir>/.codex/rules/"
+    system_unix: "/etc/codex/rules/"
+    default_file: "$CODEX_HOME/rules/default.rules"
+    note: "Codex scans rules/ next to every active config layer; project rules require project trust."
+
+  mcp:
+    user: "$CODEX_HOME/config.toml"
+    workspace: "<dir>/.codex/config.toml"
+    table: "[mcp_servers.<server-name>]"
+    plugin: "<plugin-root>/.mcp.json"
+    note: "The desktop app, CLI, and IDE extension on the same Codex host share config.toml MCP settings."
+
+  custom_prompts: # deprecated; use skills for new reusable workflows
+    suffix: "*.md"
+    user: "$CODEX_HOME/prompts/"
+    workspace: null
+    discovery: "top-level Markdown files only; subdirectories are ignored"
+    invocation: "/prompts:<filename-without-extension>"
+
+  plugins:
+    manifest: "<plugin-root>/.codex-plugin/plugin.json"
+    optional_contents: [skills/, hooks/, assets/, .mcp.json, .app.json]
+    marketplace:
+      user: "~/.agents/plugins/marketplace.json"
+      workspace: "$REPO_ROOT/.agents/plugins/marketplace.json"
+      legacy_workspace: "$REPO_ROOT/.claude-plugin/marketplace.json"
+    authoring_examples:
+      user: "$CODEX_HOME/plugins/<plugin-name>/"
+      workspace: "$REPO_ROOT/plugins/<plugin-name>/"
+    install_cache: "$CODEX_HOME/plugins/cache/<marketplace>/<plugin>/<version>/"
+    note: "Authoring locations are conventions, not fixed; marketplace source.path selects the source. Installed plugins load from the cache copy."
+
+  themes:
+    suffix: "*.tmTheme"
+    user: "$CODEX_HOME/themes/"
+
+  requirements: # enterprise-enforced policy; users cannot override it
+    suffix: "requirements.toml"
+    system:
+      windows: "%ProgramData%\\OpenAI\\Codex\\requirements.toml"
+      macos: "/etc/codex/requirements.toml"
+      linux: "/etc/codex/requirements.toml"
+    macos_mdm: "com.openai.codex:requirements_toml_base64"
+    note: "Cloud-managed requirements and legacy managed_config.toml may add higher-precedence policy layers."
+
+local_state: # generated/runtime data, not customization source files
+  auth: "$CODEX_HOME/auth.json" # only with file credential storage; otherwise OS keychain/keyring
+  history: "$CODEX_HOME/history.jsonl" # only when history persistence is enabled
+  sessions: "$CODEX_HOME/sessions/"
+  archived_sessions: "$CODEX_HOME/archived_sessions/"
+  memories: "$CODEX_HOME/memories/"
+  logs: "$CODEX_HOME/log/" # plaintext codex-tui.log is opt-in via log_dir
+  sqlite:
+    default_root: "$CODEX_HOME/"
+    env_override: "CODEX_SQLITE_HOME"
+    config_override: "sqlite_home" # takes precedence over the environment variable
+  standalone_package_cache: "$CODEX_HOME/packages/standalone/"
+
+installer_paths:
+  command:
+    windows: "%LOCALAPPDATA%\\Programs\\OpenAI\\Codex\\bin\\"
+    macos: "~/.local/bin/"
+    linux: "~/.local/bin/"
+  env_override: "CODEX_INSTALL_DIR"
+
+not_in_codex:
+  - ".github/prompts/, .github/instructions/, and .github/agents/ (Copilot customization paths)"
+  - "*.prompt.md, *.instructions.md, and *.agent.md suffix conventions"
+  - ".vscode/mcp.json (Codex configures MCP in config.toml)"
+  - ".mcp.json as a standalone user/project config (it is plugin-bundle content only)"
+  - "CLAUDE.md discovery by default (use AGENTS.md, or configure a fallback filename)"

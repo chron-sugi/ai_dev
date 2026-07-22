@@ -1,13 +1,16 @@
 # =============================================================================
-# app.yaml — sync src/assets/* to Claude Code and VS Code user directories
+# app.yaml — sync src/assets/* to Claude Code, VS Code, and Codex user directories
 #
 # Sources are the single source of truth; user dirs are copy targets.
 # Path conventions:
 #   ~        -> user home (C:\Users\<you>)
 #   %APPDATA% -> C:\Users\<you>\AppData\Roaming
+#   CODEX_HOME defaults to ~/.codex (set $CODEX_HOME to relocate it)
 # VS Code picks content type by file SUFFIX (all types share User\prompts\).
 # Claude Code picks content type by DIRECTORY (suffix is irrelevant, but the
 # filename becomes the /command name — hence the strip_suffix transforms).
+# Codex splits content between ~/.codex (prompts, agents, hooks, state) and
+# ~/.velocais (portable skills and plugin marketplace metadata).
 # =============================================================================
 
 options:
@@ -28,6 +31,10 @@ targets:
       strip_suffix: ".prompt" # write-adr.prompt.md -> write-adr.md -> /write-adr
       # commands are the direct *.prompt.md equivalent; if migrating to skills
       # later, dest becomes ~/.claude/skills/<name>/SKILL.md instead
+    codex:
+      dest: "~/.codex/prompts/" # $CODEX_HOME/prompts/; top-level *.md only
+      strip_suffix: ".prompt" # write-adr.prompt.md -> write-adr.md -> /prompts:write-adr
+      deprecated: true # supported, but Codex recommends skills for new workflows
 
   instructions:
     source: "instructions/" # *.instructions.md
@@ -38,16 +45,25 @@ targets:
       dest: "~/.claude/rules/"
       strip_suffix: ".instructions" # python-docstrings.instructions.md -> python-docstrings.md
       # NOTE: user-level ~/.claude/rules/ support is unconfirmed in Claude docs
-      # (see docs/research/claude-code/claude-code-content-paths.yaml) — verify
+      # (see docs/domains/assets/claude-code-content-paths.yaml) — verify
+    codex:
+      supported: false # no direct equivalent for path-scoped *.instructions.md
+      destination_after_conversion: "~/.codex/AGENTS.md" # $CODEX_HOME/AGENTS.md
+      reason: "Codex AGENTS.md is always-on and does not honor VS Code applyTo frontmatter; concatenate only after an explicit scope review."
 
   agents:
-    source: "agents/" # *.agent.md
+    source: "agents/" # *.velocai.md
     vscode:
       dest: "%APPDATA%\\Code\\User\\prompts\\"
-      require_suffix: ".agent.md"
+      require_suffix: ".velocai.md"
     claude:
       dest: "~/.claude/agents/"
-      strip_suffix: ".agent" # scaffolder.agent.md -> scaffolder.md
+      strip_suffix: ".velocai" # scaffolder.velocai.md -> scaffolder.md
+    codex:
+      supported: false # source is Markdown + YAML; Codex custom agents are TOML
+      destination_after_conversion: "~/.codex/agents/" # $CODEX_HOME/agents/*.toml
+      required_suffix: ".toml"
+      reason: "Convert name, description, body, model, and tool policy explicitly; copying or renaming the Markdown file is invalid."
 
   skills:
     source: "skills/" # <skill-name>/SKILL.md, resources alongside; copy whole folder
@@ -55,7 +71,11 @@ targets:
     shared: # both tools read the SAME user directory — one copy serves both
       dest: "~/.claude/skills/"
     # VS Code has no user-data skills location (User\prompts\ does not apply);
-    # it discovers ~/.claude/skills/ (also ~/.copilot/skills/, ~/.agents/skills/)
+    # it discovers ~/.claude/skills/ (also ~/.copilot/skills/, ~/.velocais/skills/)
+    codex:
+      dest: "~/.velocais/skills/" # documented direct-authoring path; copy whole skill folder
+      # Codex-managed and installer-provided skills may also live under
+      # $CODEX_HOME/skills/, but ~/.velocais/skills/ is the portable user path.
 
   hooks:
     source: "hooks/" # *.json hook definitions ({ "EventName": [...] } fragments)
@@ -66,6 +86,9 @@ targets:
       mode: merge # NOT a copy — merge each fragment under the "hooks" key;
       # event names differ between tools (Claude: PreToolUse/PostToolUse/...,
       # Copilot: its own set), so hook sources likely need per-tool variants
+    codex:
+      dest: "~/.codex/hooks.json" # $CODEX_HOME/hooks.json
+      mode: merge # merge event arrays; do not overwrite the whole file
+      # Codex hook events and tool matcher names require Codex-specific variants.
     # VS Code also reads hooks from ~/.claude/settings.json, so the Claude
     # merge may serve both; keep ~/.copilot/hooks/ for Copilot-only hooks
-

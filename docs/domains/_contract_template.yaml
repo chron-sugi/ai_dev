@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=../../src/app/config/schemas/domain-contract.schema.json
+# Remove any optional block that does not apply. Presence means create.
+schema_version: 2
+domain: example-domain
+status: draft
+summary: Replace with the domain charter and intended user-visible capability.
+rules:
+  - id: R-001
+    statement: Replace with one atomic, checkable domain rule.
+rejected_alternatives:
+  - choice: Replace with a rejected alternative
+    reason: Replace with the concrete reason it lost.
+adr_provenance: []
+unresolved_gaps:
+  - field: approval
+    description: Review the declarations and approve the contract before scaffolding.
+
+# Shared vocabulary is root-owned. Enums generate in backend models.py when a
+# backend component is present; frontend code consumes projected/generated types.
+types:
+  models:
+    - name: Example
+      description: Domain representation of an example.
+      fields:
+        - name: example_id
+          type: str
+          description: Stable example identifier.
+        - name: status
+          type: ExampleStatus
+          description: Current lifecycle status.
+  enums:
+    - name: ExampleStatus
+      base: StrEnum
+      description: Lifecycle state of an example.
+      members:
+        pending: pending
+        active: active
+        archived: archived
+  errors:
+    - name: ExampleNotFound
+      description: Raised when the requested example does not exist.
+  aliases: []
+
+invariants:
+  - id: I-001
+    statement: Every Example has exactly one stable example_id.
+    applies_to: [types.Example, backend, frontend]
+    enforcement: Backend model validation and frontend generated types.
+
+dependencies:
+  backend: []
+  frontend: []
+
+# Shared HTTP declarations are referenced by stable ID from both components.
+http:
+  schemas:
+    - name: ExampleResponse
+      description: HTTP representation returned for an example.
+      fields:
+        - name: example_id
+          type: str
+          description: Stable example identifier.
+  endpoints:
+    - id: example.get
+      method: GET
+      path: /examples/{example_id}
+      operation: get_example
+      response_type: ExampleResponse
+      status_code: 200
+      errors: [ExampleNotFound]
+  backend:
+    endpoint_ids: [example.get]
+    dependency_providers: []
+
+backend:
+  package: example_domain
+  public_api:
+    - name: get_example
+      kind: function
+      signature: "get_example(example_id: str) -> Example"
+      description: Return one example or raise ExampleNotFound.
+
+frontend:
+  slice: example-domain
+  layer: pages
+  placement:
+    reason: Pages-first placement gives the route one composition owner.
+    consumers: []
+  backend_package: example_domain
+  public_api:
+    - name: ExamplePage
+      kind: component
+      from_segment: ui
+      signature: "function ExamplePage(): JSX.Element"
+      description: Render the example page.
+  route:
+    path: /examples/:exampleId
+    export: ExamplePage
+  segments:
+    ui:
+      components:
+        - name: ExamplePage
+          props_type: ExamplePageProps
+          description: Compose the example query state and presentation.
+    api:
+      endpoint_ids: [example.get]
+      functions:
+        - name: getExample
+          endpoint_id: example.get
+          signature: "getExample(exampleId: string): Promise<ExampleResponse>"
+          description: Call the generated client for the example.get operation.

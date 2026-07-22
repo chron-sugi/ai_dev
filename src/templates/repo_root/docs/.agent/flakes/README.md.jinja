@@ -1,4 +1,4 @@
-# `.agent/flakes/` — quarantined intermittent failures
+# `.velocai/flakes/` — quarantined intermittent failures
 
 Captures intermittent test failures (Playwright + non-Playwright) so the team and the agents have a place to investigate them later without blocking the active PR.
 
@@ -8,7 +8,7 @@ A "flake" is a test that:
 - Sometimes passes in CI and sometimes fails
 - Failure is timing-, network-, or order-dependent — NOT a real regression
 
-If the test reliably fails, it's a **bug** — file it in `.agent/debug/` instead and run `/loop debug`.
+If the test reliably fails, it's a **bug** — file it in `.velocai/debug/` instead and run `/loop debug`.
 
 ## File shape
 
@@ -66,13 +66,13 @@ When a Playwright test fails intermittently:
 1. **CI publishes the trace artifact** on test failure (`apps/web/test-results/` → "playwright-traces" pipeline artifact). See [`apps/web/tests/e2e/README.md`](../../apps/web/tests/e2e/README.md) for the failure-artifact catalogue.
 2. **Download the trace artifact** from the failed CI run.
 3. **Open the trace** with `npx playwright show-trace <path-to-trace.zip>`. Identify the symptom (which step / assertion / network call).
-4. **Create the flake file** at `.agent/flakes/<test-name>-<date>.md` using the shape above. Paste the artifact URL into `artifact_urls`.
+4. **Create the flake file** at `.velocai/flakes/<test-name>-<date>.md` using the shape above. Paste the artifact URL into `artifact_urls`.
 5. **If the flake is blocking other work**, mark the test `test.fixme()` referencing this file. Otherwise leave it active and accept the intermittent CI failures while investigating.
 6. **Update `last_observed`** when the flake recurs. After three or more recurrences without resolution, escalate (file a `loop:debug` PR pointing at this file).
 
 ## Promotion
 
-A flake that turns into a known reproducible bug becomes a `.agent/debug/<incident>.md` entry; the flake file links to the debug entry and its `status` changes to `resolved (see debug/<incident>.md)`. Once the bug is fixed and a regression test added (via `/debug-fix` or `/tdd-from-repro`), the flake file can be archived.
+A flake that turns into a known reproducible bug becomes a `.velocai/debug/<incident>.md` entry; the flake file links to the debug entry and its `status` changes to `resolved (see debug/<incident>.md)`. Once the bug is fixed and a regression test added (via `/debug-fix` or `/tdd-from-repro`), the flake file can be archived.
 
 ## Retention
 

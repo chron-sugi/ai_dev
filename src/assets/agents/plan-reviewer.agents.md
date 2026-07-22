@@ -16,7 +16,7 @@ Find every step in the plan that would fail, break the build, or miss the task's
 - Relitigate the architecture decision the plan implements.
 
 ## Inputs
-A task id, `.agent/<task-id>/plan.md`, and the task description; `.agent/<task-id>/architecture.md` if one exists.
+A task id, `.velocai/<task-id>/plan.md`, and the task description; `.velocai/<task-id>/architecture.md` if one exists.
 If missing the plan: return `BLOCKED` and recommend the planner — never review a plan reconstructed from memory or conversation.
 
 ## Authority
@@ -28,7 +28,7 @@ If missing the plan: return `BLOCKED` and recommend the planner — never review
 Understand task and plan → Verify each step against the codebase → Probe for missing steps, ordering hazards, and untestable verifications → Decide verdict → Report.
 
 ## Output
-Write the review to `.agent/<task-id>/plan-review.md`.
+Write the review to `.velocai/<task-id>/plan-review.md`.
 Report: status (APPROVED | CHANGES_REQUESTED | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

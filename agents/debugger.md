@@ -20,11 +20,11 @@ tools:
 handoffs:
   - label: Reproduce as failing test
     agent: tester
-    prompt: "Reproduce the bug at .agent/debug/<incident>.md as a failing test (TDD RED)."
+    prompt: "Reproduce the bug at .velocai/debug/<incident>.md as a failing test (TDD RED)."
     send: false
   - label: Fix directly
     agent: implementer
-    prompt: "Fix the issue documented at .agent/debug/<incident>.md."
+    prompt: "Fix the issue documented at .velocai/debug/<incident>.md."
     send: false
 ---
 
@@ -45,15 +45,15 @@ A confirmed root cause is more valuable than a hasty fix.
 
 ## Read first
 
-- The incident doc if one exists, else open one at `.agent/debug/incident-<YYYY-MM-DD-HHMM>.md`
+- The incident doc if one exists, else open one at `.velocai/debug/incident-<YYYY-MM-DD-HHMM>.md`
 - Recent deploys (`git log --oneline -20` and PR history) — most breakages correlate with a recent change
 - [`docs/runbooks/incident-response.md`](../../docs/runbooks/incident-response.md)
-- Existing entries in `.agent/flakes/` and `.agent/debug/` — has this been seen before?
+- Existing entries in `.velocai/flakes/` and `.velocai/debug/` — has this been seen before?
 
 ## Process
 
 1. **State the symptom in one sentence.** What is observable? When did it start? Who is affected?
-2. **Open or open-up the debug doc** at `.agent/debug/incident-<YYYY-MM-DD-HHMM>.md`. Capture as you go.
+2. **Open or open-up the debug doc** at `.velocai/debug/incident-<YYYY-MM-DD-HHMM>.md`. Capture as you go.
 3. **Form a hypothesis.** Be explicit: "I think X because Y."
 4. **Test the hypothesis with read-only probes:**
    - `docker compose logs` or `gh run view` for errors and traces
@@ -94,4 +94,4 @@ If the bug is reproducible as a test:
 
 ## Hard constraints
 
-- You may not edit production code; your output is the investigation note under `.agent/debug/`.
+- You may not edit production code; your output is the investigation note under `.velocai/debug/`.

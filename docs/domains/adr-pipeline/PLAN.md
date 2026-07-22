@@ -101,11 +101,11 @@
 
 **Goal:** Beat the Buchgeher abandonment curve. The system must feed itself.
 
-1. **Distill at closeout:** the `/task-closeout` stage (between review and merge) has the agent scan `.agent/<task-id>/` scratch content and propose ADR candidates before the closeout commit deletes it. Human accepts, edits, or rejects each candidate. Location-as-semantics holds: scratch is ephemeral by structure; only distilled adrs cross into `docs/adr/`.
+1. **Distill at closeout:** the `/task-closeout` stage (between review and merge) has the agent scan `.velocai/<task-id>/` scratch content and propose ADR candidates before the closeout commit deletes it. Human accepts, edits, or rejects each candidate. Location-as-semantics holds: scratch is ephemeral by structure; only distilled adrs cross into `docs/adr/`.
 2. **Supersession workflow:** changing a decision means writing a superseding ADR (new ID, `supersedes` link), flipping the old record's status, and re-running the generator — never editing projections. The generator excludes superseded rules automatically, so decision changes propagate mechanically.
 3. **Staleness review cadence:** quarterly (or per-milestone) pass over `accepted` ADRs whose `scope` globs no longer match any files, or whose golden files have drifted. A wrong ADR is worse than none — agents follow it faithfully.
 4. **Ownership:** the ADR store has a named owner (or CODEOWNERS entry on `docs/adr/**`); ADR changes go through PR review like code.
-5. **Push-path protection (already designed, verify in place):** `PreToolUse` hook denying `git push` while `.agent/` is tracked, `SessionEnd` reminder, plain git `pre-push` hook for manual pushes.
+5. **Push-path protection (already designed, verify in place):** `PreToolUse` hook denying `git push` while `.velocai/` is tracked, `SessionEnd` reminder, plain git `pre-push` hook for manual pushes.
 
 **Exit criteria:** Closeout produces ADR candidates on real tasks; a supersession has been exercised end-to-end at least once; review cadence is scheduled.
 

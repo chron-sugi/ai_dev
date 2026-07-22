@@ -12,7 +12,7 @@ Map the code, conventions, and constraints relevant to the task and report verif
 
 ## This agent does NOT
 - Propose designs, refactors, or solution options.
-- Modify, create, or delete any file outside `.agent/<task-id>/`.
+- Modify, create, or delete any file outside `.velocai/<task-id>/`.
 - Estimate effort or sequence implementation steps.
 
 ## Inputs
@@ -28,7 +28,7 @@ If missing: derive the task id from context only if unambiguous; otherwise retur
 Understand the questions → Sweep broadly (Glob/Grep) → Read the load-bearing files → Cross-check findings against tests and callers → Report.
 
 ## Output
-Write the exploration report to `.agent/<task-id>/exploration.md`.
+Write the exploration report to `.velocai/<task-id>/exploration.md`.
 Report: status (COMPLETE | PARTIAL | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

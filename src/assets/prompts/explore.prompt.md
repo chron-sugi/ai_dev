@@ -1,6 +1,6 @@
 ---
 agent: explorer
-description: Produce a workspace-shaped research note in .agent/research/<task-slug>.md.
+description: Produce a workspace-shaped research note in .velocai/research/<task-slug>.md.
 tools:
   - search/codebase
   - search/usages
@@ -14,9 +14,9 @@ tools:
 
 # /research
 
-Produce a research note for **[[ project_title ]]**, written to `.agent/research/<task-slug>.md`. The note is the **grounding** that the planner uses to draft a plan, and it survives session boundaries. Per-task filename means multiple researchers can work in parallel without collision (same property `/rpi-plan` has).
+Produce a research note for **[[ project_title ]]**, written to `.velocai/research/<task-slug>.md`. The note is the **grounding** that the planner uses to draft a plan, and it survives session boundaries. Per-task filename means multiple researchers can work in parallel without collision (same property `/rpi-plan` has).
 
-This prompt activates the **researcher** agent. The researcher is read-only on code and writes only to `.agent/research/`.
+This prompt activates the **researcher** agent. The researcher is read-only on code and writes only to `.velocai/research/`.
 
 ## Inputs
 
@@ -29,10 +29,10 @@ This prompt activates the **researcher** agent. The researcher is read-only on c
 
 Before writing:
 
-1. Check whether a research note already exists at `.agent/research/<task>.md` or with a related slug. If so, do **not** overwrite — propose extending, revising, or writing a `<task>-v2.md` instead.
+1. Check whether a research note already exists at `.velocai/research/<task>.md` or with a related slug. If so, do **not** overwrite — propose extending, revising, or writing a `<task>-v2.md` instead.
 2. Search `docs/concepts/` for any concept doc that names the entity/workflow this task touches. Cite specifics.
 3. Search `docs/adrs/` for ADRs that constrain the option space. Cite specifics.
-4. Scan recent `.agent/plans/` for prior work on the same slug or adjacent slugs. Avoid re-deriving.
+4. Scan recent `.velocai/plans/` for prior work on the same slug or adjacent slugs. Avoid re-deriving.
 
 ### Phase 2: Map the territory
 
@@ -75,7 +75,7 @@ The decision rule that separates ADR-worthy from tactical: *would a future devel
 
 Use this exact shape. Front-matter is machine-readable; sections are human-readable.
 
-After writing `.agent/research/<slug>.md`, also write `<slug>` (one line, no trailing newline) to `.agent/.current-task` using `edit/editFiles`. This allows `/rpi-plan` and subsequent agents to find the active task without the user retyping the slug.
+After writing `.velocai/research/<slug>.md`, also write `<slug>` (one line, no trailing newline) to `.velocai/.current-task` using `edit/editFiles`. This allows `/rpi-plan` and subsequent agents to find the active task without the user retyping the slug.
 
 ```markdown
 ---
@@ -89,8 +89,8 @@ concepts:
   - docs/concepts/<noun>.md
 adrs:
   - docs/adrs/<NNNN>-<slug>.md
-related-plans:                         # any .agent/plans/ that touched adjacent work
-  - .agent/plans/<slug>.md
+related-plans:                         # any .velocai/plans/ that touched adjacent work
+  - .velocai/plans/<slug>.md
 ---
 
 # Research: <title>
@@ -144,7 +144,7 @@ One paragraph restating the question in domain terms. Cite the user's request.
 
 ## Hand-off
 
-Next: `/rpi-plan task=<same-slug> from-research=.agent/research/<slug>.md`.
+Next: `/rpi-plan task=<same-slug> from-research=.velocai/research/<slug>.md`.
 ```
 
 ### Phase 4: Present and stop
@@ -152,16 +152,16 @@ Next: `/rpi-plan task=<same-slug> from-research=.agent/research/<slug>.md`.
 Show the proposed research note. Surface unresolved open questions clearly. Tell the user:
 
 ```
-Research note drafted: .agent/research/<slug>.md
+Research note drafted: .velocai/research/<slug>.md
 Open questions for human input: <count>
 
-Next: resolve open questions if any, then invoke /rpi-plan (slug saved to .agent/.current-task).
+Next: resolve open questions if any, then invoke /rpi-plan (slug saved to .velocai/.current-task).
 ```
 
 ## What this prompt does NOT do
 
 - **Propose a plan.** That's the planner's job. The research note enumerates options; it doesn't sequence edits.
-- **Edit code.** Researcher may write only the research artifact under `.agent/research/`.
+- **Edit code.** Researcher may write only the research artifact under `.velocai/research/`.
 - **Make architectural adrs.** If Phase 2.5 triggers, write a stub note recommending `/write-adr` and stop. The architect makes the decision; you don't pre-commit to options.
 - **Skip prior art.** If the same problem has been researched before, you must find that note and either extend it or write a clearly-marked `-v2.md`.
 

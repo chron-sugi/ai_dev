@@ -1,6 +1,6 @@
 ---
 agent: scaffolder
-description: Domain payload for the scaffolder agent — scaffold a Feature-Sliced Design 2.1 frontend slice from an approved ADR.
+description: Domain payload for the scaffolder agent — scaffold a Feature-Sliced Design 2.1 frontend slice from an approved CONTRACT.yaml.
 ---
 # Domain prompt: FSD frontend slice
 
@@ -9,23 +9,24 @@ omission rule, verification discipline, report format, stop conditions) is
 defined in the agent definition — this prompt supplies only what is
 specific to Feature-Sliced Design 2.1 frontend slices.
 
-## Parameters
+## Contract inputs
 
-- `{{SLICE}}` — slice name (matches `{{BACKEND_PACKAGE}}` when paired)
-- `{{LAYER}}` — FSD layer the ADR places this slice on
+- `{{SLICE}}` — `frontend.slice`
+- `{{LAYER}}` — `frontend.layer`
   (`pages` | `widgets` | `features` | `entities`)
-- `{{BACKEND_PACKAGE}}` — paired backend domain package; empty for
-  frontend-only slices. Non-empty ⇒ the seam section activates.
+- `{{BACKEND_PACKAGE}}` — optional `frontend.backend_package`; absent for
+  frontend-only slices. Present ⇒ the seam section activates.
 
-## Binding ADR sections
+## Binding contract declarations
 
-- `rule` field — the slice charter
-- Layer placement and the reason it isn't `pages` (pages-first is the
-  default; any lower layer requires the ADR to name ≥2 consumers)
-- Endpoints consumed, if any (must match `{{BACKEND_PACKAGE}}`'s declared
-  endpoints)
-- Granted @x cross-import edges (default: none)
-- Rejected alternatives
+- `rules` — the slice charter and constraints
+- Root `types` and `invariants` — shared vocabulary and truths the slice must preserve
+- `frontend.placement` — the layer rationale and named consumers
+- `frontend.public_api` — exact `index.ts` exports
+- `frontend.segments` — explicit segment declarations; presence means create
+- `frontend.segments.api.endpoint_ids` — consumed root `http.endpoints`
+- `dependencies.frontend` — granted @x imports; absence means none
+- `rejected_alternatives` and optional `adr_provenance`
 
 ## Assumed-present repo state
 
@@ -40,7 +41,7 @@ missing:
   generated types in `src/shared/api/`, regen-diff check in CI
 - ESLint/Prettier Tailwind configs per the Tailwind v4 kit
 
-If `{{BACKEND_PACKAGE}}` is non-empty: the paired backend adapter exists
+If `{{BACKEND_PACKAGE}}` is present: the paired backend adapter exists
 and its routes appear in the committed OpenAPI spec. Absent ⇒ stop
 (dispatch is mis-sequenced).
 
@@ -61,7 +62,7 @@ condition, not a license to add it.
 The slice is a folder on its layer with a public API and internal
 segments. FSD's import rule is the repo-level rung order: a slice imports
 only layers strictly below; slices on the same layer are independent
-except ADR-granted @x edges.
+except contract-granted `dependencies.frontend`.
 
 ```
 src/{{LAYER}}/{{SLICE}}/
@@ -72,8 +73,8 @@ src/{{LAYER}}/{{SLICE}}/
     lib/            # segment — CONDITIONAL, fenced
 ```
 
-**Pages-first (binding).** This prompt scaffolds the one slice the ADR
-declares, on the layer the ADR declares. It never creates additional
+**Pages-first (binding).** This prompt scaffolds the one slice the contract
+declares, on the layer the contract declares. It never creates additional
 slices on `widgets`/`features`/`entities` speculatively — extraction to
 lower layers happens mid-life, criterion-fired (a second consumer observed
 and named), as its own dispatch.
@@ -88,12 +89,14 @@ single seam in tests.
 
 ## Conditional criteria
 
+Resolve structure only from block presence under `frontend.segments`.
+
 | Segment | Create when… | Otherwise |
 |---|---|---|
-| `ui/` | The slice renders anything. (Nearly always for `pages`/`widgets`.) | Omit — logic-only slice. |
-| `api/` | `{{BACKEND_PACKAGE}}` is non-empty, or the ADR names endpoints consumed. | Omit. Never create an empty api segment "for later". |
-| `model/` | The ADR names state that outlives a single component (stores, cross-component state, non-trivial client logic). Component-local state stays in the component. | Omit. |
-| `lib/` | A helper is needed by ≥2 modules *within this slice* and is slice-specific. | Omit. One consumer ⇒ helper stays local to its module. Repo-wide utility ⇒ stop and report (shared/ is out of blast radius). |
+| `ui/` | `frontend.segments.ui` is present; create exactly its components. | Omit. |
+| `api/` | `frontend.segments.api` is present; create exactly its wrappers and endpoint references. | Omit. Never create an empty api segment "for later". |
+| `model/` | `frontend.segments.model` is present; create exactly its state declarations. | Omit. Component-local state remains in its component. |
+| `lib/` | `frontend.segments.lib` is present; create exactly its helpers. Schema validation already requires ≥2 consumers. | Omit. Repo-wide utilities remain a stop condition. |
 
 **Never create**: top-level or slice-level `components/`, `hooks/`,
 `utils/`, `helpers/`, `types.ts` (types live in `model/`, or come
@@ -114,29 +117,29 @@ apply), hand-written types duplicating OpenAPI schemas, `config/` segment
 - `model/` may import the slice's `api/` and `shared`; never `ui/`.
   Segment order within the slice: `ui → model → api → (shared)`, `lib`
   importable by all.
-- @x cross-imports: only ADR-granted edges, using FSD's @x notation,
-  commented with the ADR id at the import site.
+- @x cross-imports: only `dependencies.frontend`, using FSD's @x
+  notation and a contract rule/provenance citation at the import site.
 - Framework specifics (router, state library, test runner) follow the
   repo's existing patterns — match, don't introduce.
 
 ## Golden files
 
-- One `ui/` component demonstrating the canonical shape: `shared/ui`
+- The first contract-declared `ui/` component demonstrates the canonical shape: `shared/ui`
   primitives, `cn()`, props typed from `model/` or generated types —
   the imitation target for the slice's future components.
-- If `api/` exists: one function wrapping the generated client for the
-  simplest ADR-declared endpoint — real request/response typing
+- If `api/` exists: the first declared wrapper function uses the generated
+  client for its referenced endpoint — real request/response typing
   round-trip, `NotImplementedError`-equivalent (`throw new Error("not
   implemented")`) is NOT acceptable here; the wiring must work against
   the generated types (compile-time proof is the point).
 - If `{{LAYER}}` is `pages`: the page component composes the golden ui
   component and mounts on its registered route.
 
-## The seam (active iff `{{BACKEND_PACKAGE}}` non-empty)
+## The seam (active iff `frontend.backend_package` is present)
 
-The contract is owned by the ADR; the committed OpenAPI spec is its
-compiled form; generated types in `shared/api` are its TypeScript
-projection. This slice consumes the projection — it never re-declares it.
+The root `http` block is the primary interface contract; the committed OpenAPI
+spec and generated types in `shared/api` are projections. This slice consumes
+the generated projection and never re-declares it.
 
 - Every request/response type in `api/` traces to a generated type.
 - If a declared endpoint is missing from the spec: stop and report
@@ -170,7 +173,7 @@ dispatch.
 - Steiger clean; ESLint/Prettier clean; TypeScript compiles
 - Regen-diff check clean (spec and generated types agree)
 - Test suite green, including scaffolded tests:
-  - surface test: `index.ts` exports exactly the ADR-declared names
+  - surface test: `index.ts` exports exactly `frontend.public_api`
   - iff `api/`: one test exercising the golden api function against a
     mocked transport per the repo's mocking pattern — never by
     hand-mocking generated types
@@ -178,13 +181,13 @@ dispatch.
 
 ## Domain acceptance criteria
 
-- [ ] Slice exists on the ADR-declared layer; no other slices created
+- [ ] Slice exists on the contract-declared layer; no other slices created
 - [ ] Segment set matches the decision table; omissions recorded
 - [ ] No never-create items; zero hand-written schema-duplicate types
-- [ ] `index.ts` surface matches ADR-declared names; surface test passes
+- [ ] `index.ts` surface matches `frontend.public_api`; surface test passes
 - [ ] Golden ui component uses shared/ui + cn(); golden api function
       compiles against generated types
 - [ ] All ui server communication routed through the slice's `api/`
-- [ ] @x edges only where ADR-granted, commented with ADR id
+- [ ] @x edges only where contract-granted, with contract provenance
 - [ ] All violation checks performed and observed failing
 - [ ] Route registered iff `pages` layer, one line only

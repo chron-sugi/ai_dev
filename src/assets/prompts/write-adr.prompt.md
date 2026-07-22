@@ -79,7 +79,7 @@ Good: "Merge Tailwind classes only via the cn() helper; never concatenate class 
 
 ## Constraints on the `domain` field
 
-**REQUIRED on every ADR.** Must be kebab-case (lowercase words separated by hyphens, e.g. `concept-docs`, `api-layer`). Names the domain the decision belongs to and drives domain-clustered projection; reuse an existing domain name from `docs/domain/` when one fits rather than inventing a near-duplicate.
+**REQUIRED on every ADR.** Must be kebab-case (lowercase words separated by hyphens, e.g. `concept-docs`, `api-layer`). Names the domain the decision belongs to and drives domain-clustered projection; reuse an existing domain name from `docs/domains/` when one fits rather than inventing a near-duplicate.
 
 ## Constraints on `projection`
 

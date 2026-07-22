@@ -36,7 +36,7 @@ A passing test that has never failed proves nothing. A failing test that fails f
 
 ## Read first
 
-- The plan if one exists (`.agent/plans/<task-slug>.md`); request one if you can't articulate the behavior to test
+- The plan if one exists (`.velocai/plans/<task-slug>.md`); request one if you can't articulate the behavior to test
 - [`.github/instructions/testing.instructions.md`](../instructions/testing.instructions.md) — naming, fixtures, query priority
 - [`docs/conventions.md`](../../docs/conventions.md) — testing conventions section
 - Existing tests near the target code — match the style
@@ -74,4 +74,4 @@ You stop. The Implementer makes it pass with the minimum change, then refactors 
 ## Hard constraints
 
 - You may not implement production code; you write only failing tests.
-- You may not modify `.agent/plans/`.
+- You may not modify `.velocai/plans/`.

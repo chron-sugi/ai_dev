@@ -13,7 +13,7 @@ rule: "Files named exactly RESEARCH.md (any directory) are human-only: agents ne
 
 ## Context
 
-The document taxonomy has two classes: immutable ADRs (`docs/adrs/`, ADR-0005) and mutable living reference documents (`docs/reference/` per ADR-0002, per-domain CONCEPT/CONTRACT files per ADR-0009). Research artifacts have no durable home. Today they meet one of two fates: compressed into an ADR's Context and Rejected-alternatives sections, or written to `.agent/<task-id>/` scratch and deleted at closeout.
+The document taxonomy has two classes: immutable ADRs (`docs/adrs/`, ADR-0005) and mutable living reference documents (`docs/reference/` per ADR-0002, per-domain CONCEPT/CONTRACT files per ADR-0009). Research artifacts have no durable home. Today they meet one of two fates: compressed into an ADR's Context and Rejected-alternatives sections, or written to `.velocai/<task-id>/` scratch and deleted at closeout.
 
 A third category has neither home: surveys, tool evaluations, and "we looked at X and it's not time yet" findings. Concrete instances from this project's history: the dependency-cruiser evaluation (ruled out), the Lefthook evaluation (viable, not adopted), and the July 2026 deterministic-enforcement landscape report. None are decisions; all are worth keeping near the domain they inform.
 
@@ -34,7 +34,7 @@ Enforcement mechanics are a separate decision: ADR-0014.
 ## Rejected alternatives
 
 - **Keep compressing research into ADR context sections** — bloats ADRs with material that isn't part of the decision, and much research supports no decision at all ("not time yet" findings have no ADR to live in).
-- **Keep research in `.agent/` scratch** — deleted at closeout; the dependency-cruiser and Lefthook evaluations would be re-done from scratch the next time the question arises.
+- **Keep research in `.velocai/` scratch** — deleted at closeout; the dependency-cruiser and Lefthook evaluations would be re-done from scratch the next time the question arises.
 - **House research in `docs/reference/`** (ADR-0002's class) — reference documents are agent-consumed by design; putting rejected-tool surveys there is the poisoning vector this ADR exists to close.
 - **Path-scoped marking (`docs/domains/**/RESEARCH.md`)** — solves a nonexistent problem and breaks the moment stack-wide research needs a home outside `docs/domains/`.
 - **Substring marking (`*RESEARCH.md`)** — access class would flip on incidental file naming; class membership must be deterministic and closed.

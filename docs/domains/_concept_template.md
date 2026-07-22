@@ -21,7 +21,7 @@ reconstruct by reading code for twenty minutes. Analogies and structure,
 not implementation detail. No file paths, no line numbers, no snippets.
 End with a one-line ownership boundary. For a domain CONCEPT.md, contract
 state (declared surface, endpoints, granted edges) is always on the far
-side of that boundary — it belongs to the sibling CONTRACT.md (ADR-0009).
+side of that boundary — it belongs to the sibling CONTRACT.yaml (ADR-0017).
 -->
 
 <Mental model prose.>
@@ -55,7 +55,7 @@ Misleading entry points belong here, named by stable identifier only.
 <!--
 NEVER include: decision rationale (→ ADR), procedures (→ instructions),
 contract state — surface, endpoints, dependency edges (→ sibling
-CONTRACT.md, per ADR-0009), paths/lines/snippets, history, roadmap, or
+CONTRACT.yaml, per ADR-0017), paths/lines/snippets, history, roadmap, or
 anything derivable from the code in under a minute.
 HARD CAP: 250 lines. Over budget = split or demote, never raise the cap.
 ONE CONCEPT = one mental model, one noun phrase (no "and"), one contiguous

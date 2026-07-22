@@ -30,7 +30,7 @@ Constraints specific to agent-driven development:
 
 ## Decision
 
-Enforcement is layered, matching the existing `.agent/` tracking enforcement pattern:
+Enforcement is layered, matching the existing `.velocai/` tracking enforcement pattern:
 
 1. **CI (authoritative)** — `lint-imports` runs in CI; this is the layer an agent cannot bypass.
 2. **Pre-push (fast local backstop)** — plain git `pre-push` hook runs `lint-imports`, covering manual and agent push paths before CI.
