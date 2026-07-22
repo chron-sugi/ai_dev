@@ -23,8 +23,8 @@ per domain plus sentinel-marked regions inside shared surfaces; agents read
 only compiled output, never the source records. A drift guard re-runs
 projection in CI and fails on any divergence from committed output, which
 is what turns "don't hand-edit generated files" from a convention into an
-unmergeable state. The pipeline has two interchangeable implementations —
-Node and PowerShell — and exactly one command surface: justfile recipes,
+unmergeable state. The pipeline has exactly one implementation —
+stdlib-only Python (ADR-0012) — and exactly one command surface: justfile recipes,
 invoked identically by developers, agents, and CI, so a CI failure is
 always reproducible by running the same recipe locally. Everything else in
 the repo is a consumer of the pipeline's output, never a participant in it.
@@ -37,12 +37,11 @@ to concept-docs.
 ## Invariants
 
 - Projection is a pure function of the ADR corpus: the same source must
-  produce byte-identical output from either implementation (Node or
-  PowerShell), locally or in CI (ADR-0006, ADR-0008). This is why recipes
-  run PowerShell with `-NoProfile` — any environment sensitivity (profile
-  state, locale, line endings, directory enumeration order) is a pipeline
-  bug even when the output looks correct, because the drift guard compares
-  bytes, not meaning.
+  produce byte-identical output locally and in CI (ADR-0006, ADR-0008,
+  ADR-0012). Any environment sensitivity in the Python implementation
+  (locale, line endings, directory enumeration order, dict/set iteration
+  order) is a pipeline bug even when the output looks correct, because
+  the drift guard compares bytes, not meaning.
 - Rules flow one way: ADR → compiled surface. Projection never writes to
   `docs/adrs/`, and no compiled surface is ever an input to projection
   (ADR-0004, ADR-0005, ADR-0006 jointly define this direction). The one

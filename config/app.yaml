@@ -10,6 +10,11 @@
 # filename becomes the /command name — hence the strip_suffix transforms).
 # =============================================================================
 
+options:
+  overwrite: true # user dirs are derived artifacts; always mirror source
+  clean_orphans: false # do not delete files in dest that lack a source (may be hand-authored)
+  dry_run_default: true # copiers should preview unless explicitly told to apply
+
 source_root: "src/assets"
 
 targets:
@@ -64,7 +69,3 @@ targets:
     # VS Code also reads hooks from ~/.claude/settings.json, so the Claude
     # merge may serve both; keep ~/.copilot/hooks/ for Copilot-only hooks
 
-options:
-  overwrite: true # user dirs are derived artifacts; always mirror source
-  clean_orphans: false # do not delete files in dest that lack a source (may be hand-authored)
-  dry_run_default: true # copiers should preview unless explicitly told to apply
