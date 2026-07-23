@@ -1,0 +1,6 @@
+# Generated projection surfaces are byte-compared by the drift guard
+# (just project-check, ADR-0006); pin them to LF so core.autocrlf checkout
+# translation can never manufacture drift on Windows.
+.github/copilot-instructions.md text eol=lf
+.github/instructions/** text eol=lf
+.claude/rules/** text eol=lf
