@@ -2,7 +2,7 @@
 task: adr-projection
 title: Dual-target ADR projection — per-domain Copilot instructions and Claude rules, idempotent update-in-place
 loop: rpi
-status: in-progress
+status: done
 created: 2026-07-23
 agent-id: claude-fable-5 / session 265a829b
 research: []                     # no research note; facts gathered in-session (repo inventory + Claude Code docs verification), user-initiated planning request
@@ -130,3 +130,15 @@ All resolved by recommendation below (autonomous session — user can override a
 4. Move a domain's only ADR to `status: superseded` in a fixture → both generated files deleted; a notice-less file in the same directories survives.
 5. Hand-edit inside a generated file → `just project-check` exits non-zero naming the file; regenerate → exit 0.
 6. `py -3 -m pytest -q` green; `py -3 -m ruff check .` clean; grep of `src/app/projection/` shows stdlib-only imports.
+
+## Acceptance verification (implementation, 2026-07-23)
+
+- [x] `just project` twice → second run 0 written / 0 deleted; `just project-check` exit 0.
+- [x] Projectable ADRs land in exactly one Copilot and one Claude domain file with per-line `(ADR-NNNN)` citations. 18 of 22 rules project: ADR-0006/0007 are lint-channel (non-goal), ADR-0014 is `projection: none`, and ADR-0013 is excluded by the generator because ADR-0014's accepted rule forbids RESEARCH.md in any projection output or instruction glob (exclusion reported in CLI output; see follow-ups).
+- [x] `applyTo` string set == `paths` list set == sorted deduplicated scope union (golden + dialect-equivalence tests).
+- [x] Rule edit re-projects both files in place; notice-less files never touched (emit + integration tests).
+- [x] Last-ADR removal deletes both generated files, notice-gated only (emit + integration tests).
+- [x] `just project-check` exits 1 on hand edit or orphan, 0 when clean (verified on the real repo).
+- [x] 37 tests green, `ruff check .` clean repo-wide, stdlib-only imports asserted by `tests/projection/test_integration.py::test_projection_package_is_stdlib_only`.
+
+Deviation notes: `.gitattributes` added pinning generated paths to LF (autocrlf would otherwise manufacture drift against the byte-comparing guard — determinism invariant, concept doc); shell setting and `python` var moved from `justfile.local` into the framework justfile so it stands alone; four pre-existing T201 `print` findings in `install_claude_assets.py` fixed to satisfy the repo-wide ruff-clean criterion.
