@@ -1,2 +1,7 @@
 # Project-specific just recipes (ADR-0011).
 # This file is never overwritten by a framework deploy. Add project recipes here.
+# Shell setting and the `python` variable are defined by the framework justfile.
+
+# Copy Claude agent assets into their deployed locations
+install-claude-assets:
+    {{python}} install_claude_assets.py
