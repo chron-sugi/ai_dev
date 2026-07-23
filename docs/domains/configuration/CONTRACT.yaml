@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=../../../src/app/config/schemas/domain-contract.schema.json
+schema_version: 2
+domain: configuration
+status: draft
+summary: Define the repository-root velocai.yaml file as the sole user-facing configuration interface for application identity and synchronization behavior.
+rules:
+  - id: R-001
+    statement: Expose user-adjustable application settings only through the repository-root velocai.yaml file.
+    adr: ADR-0015
+  - id: R-002
+    statement: Keep internal runtime state outside velocai.yaml.
+    adr: ADR-0015
+  - id: R-003
+    statement: Export only explicitly selected non-secret configuration values to React browser bundles.
+    adr: ADR-0015
+rejected_alternatives:
+  - choice: Keep config/app.yaml as the public file
+    reason: Its generic name and nested location make ownership and discovery ambiguous in consuming repositories.
+  - choice: Use JSON
+    reason: It lacks comments and is unnecessarily noisy for configuration maintained directly by people.
+  - choice: Use TOML
+    reason: It is less natural for nested target mappings and requires separate parsing support in Node-based tooling.
+  - choice: Use INI
+    reason: It cannot represent nested mappings, lists, and per-target configuration without ad hoc encoding conventions.
+  - choice: Split settings between backend and frontend configuration files
+    reason: It creates competing sources of truth for repository-wide synchronization behavior.
+adr_provenance:
+  - id: ADR-0015
+    path: docs/adrs/adr-0015-velocai-yaml-user-configuration.md
+unresolved_gaps:
+  - field: types.models
+    description: Define the exact velocai.yaml keys, nested structure, value types, required fields, and defaults for application identity and synchronization settings.
+  - field: invariants
+    description: Define mechanically testable relationships among overwrite, orphan cleanup, dry-run, and any additional synchronization settings.
+  - field: backend
+    description: Define the package, public validation and loading API, and any backend configuration declarations if this domain requires Python scaffolding.
+  - field: frontend
+    description: Define the explicitly exportable non-secret values and frontend consumption surface if this domain requires frontend scaffolding.
