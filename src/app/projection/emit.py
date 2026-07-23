@@ -70,7 +70,9 @@ def merge_copilot_shared(root: Path, clustered: ClusteredCorpus) -> str | None:
 
     Replaces the sentinel-delimited region, preserving hand-authored prose
     outside it; creates the file as just the block when absent. Returns None
-    when there are no universal rules and no existing file to clean up.
+    when there are no universal rules and either no file exists or the
+    existing file carries no sentinel region — a fully hand-authored file is
+    left untouched rather than gaining an empty sentinel pair.
 
     Raises:
         EmitError: if exactly one sentinel is present — the region is damaged
@@ -91,6 +93,8 @@ def merge_copilot_shared(root: Path, clustered: ClusteredCorpus) -> str | None:
             f"({len(begin_indices)} begin / {len(end_indices)} end markers)"
         )
     if block is None:
+        if not begin_indices:
+            return None
         block = f"{SENTINEL_BEGIN}\n{SENTINEL_END}\n"
     block_lines = block.rstrip("\n").split("\n")
     if not begin_indices:

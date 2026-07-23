@@ -131,6 +131,34 @@ def test_sentinel_merge_preserves_hand_authored_prose(tmp_path: Path) -> None:
     assert "Rule from ADR-0002." in text
 
 
+def test_no_universal_rules_leaves_sentinel_less_shared_file_untouched(tmp_path: Path) -> None:
+    """With no universal rules, a hand-authored shared file gains no sentinel pair."""
+
+    shared = tmp_path / ".github/copilot-instructions.md"
+    shared.parent.mkdir(parents=True)
+    shared.write_text("# My project\n\nhand-authored only\n", encoding="utf-8")
+    corpus = ClusteredCorpus(domains={"demo": [_record("ADR-0001")]}, universal=[])
+    assert merge_copilot_shared(tmp_path, corpus) is None
+    apply(tmp_path, corpus)
+    assert shared.read_text(encoding="utf-8") == "# My project\n\nhand-authored only\n"
+
+
+def test_no_universal_rules_empties_existing_sentinel_region(tmp_path: Path) -> None:
+    """With no universal rules, an existing sentinel region is emptied, prose kept."""
+
+    shared = tmp_path / ".github/copilot-instructions.md"
+    shared.parent.mkdir(parents=True)
+    shared.write_text(
+        f"prose\n\n{SENTINEL_BEGIN}\nstale\n{SENTINEL_END}\n", encoding="utf-8"
+    )
+    corpus = ClusteredCorpus(domains={"demo": [_record("ADR-0001")]}, universal=[])
+    apply(tmp_path, corpus)
+    text = shared.read_text(encoding="utf-8")
+    assert "stale" not in text
+    assert text.startswith("prose\n")
+    assert SENTINEL_BEGIN in text and SENTINEL_END in text
+
+
 def test_single_sentinel_is_refused(tmp_path: Path) -> None:
     """A damaged sentinel region aborts rather than risking prose loss."""
 
