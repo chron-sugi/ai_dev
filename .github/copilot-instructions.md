@@ -8,4 +8,5 @@ Rules below are projected from ADRs. Before modifying in-scope files, read the c
 - lint-imports runs at pre-push and in CI; never add import contracts to pre-commit; agents run lint-imports as part of the verify/closeout step after editing */models.py or shared/** (ADR-0003)
 - Never create a CONSTITUTION.md or any monolithic hand-edited rules file; record each durable rule as its own ADR in docs/adrs/. (ADR-0004)
 - Implement all framework scripting — pipeline implementations, hooks, and guards — as stdlib-only Python 3; never add Node/.mjs scripts or a PowerShell peer implementation. (ADR-0012)
+- Record a durable rule as its own ADR in docs/adrs/ when it is structural or contested, or as a single rule line in docs/standards/<domain>.md when it is an uncontested standing rule; never in a monolithic hand-edited rules file. (ADR-0023)
 <!-- velocai:end generated -->

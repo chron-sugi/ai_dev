@@ -13,6 +13,5 @@ paths:
 
 Rules below are projected from ADRs. Before modifying in-scope files, read the cited ADR in `docs/adrs/`; do not re-litigate accepted decisions.
 
-- Document each domain only in docs/domains/<domain>/, which contains exactly CONCEPT.md (durable domain knowledge) and CONTRACT.md (the domain's current contract). (ADR-0009)
 - Define each documented domain's current executable contract in docs/domains/<domain>/CONTRACT.yaml. (ADR-0017)
 - Treat .velocai/schemas/CONTRACT.schema.json as the sole authority on domain-contract validity; validators and templates conform to it, never define it. (ADR-0020)
