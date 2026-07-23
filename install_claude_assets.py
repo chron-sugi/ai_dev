@@ -26,8 +26,10 @@ MAPPINGS = [
 
 
 def copy_tree(src: Path, dest: Path) -> int:
+    """Copy every file in ``src`` into ``dest``, returning the count copied."""
+
     if not src.is_dir():
-        print(f"  SKIP: source not found: {src}", file=sys.stderr)
+        sys.stderr.write(f"  SKIP: source not found: {src}\n")
         return 0
     dest.mkdir(parents=True, exist_ok=True)
     count = 0
@@ -36,17 +38,19 @@ def copy_tree(src: Path, dest: Path) -> int:
             continue
         target = dest / item.name
         shutil.copy2(item, target)
-        print(f"  {item.name} -> {target}")
+        sys.stdout.write(f"  {item.name} -> {target}\n")
         count += 1
     return count
 
 
 def main() -> int:
+    """Install every mapped asset directory; exit non-zero if nothing copied."""
+
     total = 0
     for src, dest in MAPPINGS:
-        print(f"Copying {src} -> {dest}")
+        sys.stdout.write(f"Copying {src} -> {dest}\n")
         total += copy_tree(src, dest)
-    print(f"Done. {total} file(s) copied.")
+    sys.stdout.write(f"Done. {total} file(s) copied.\n")
     return 0 if total > 0 else 1
 
 
