@@ -1,7 +1,7 @@
 ---
 id: ADR-0009
 title: Per-domain documentation folder with exactly CONCEPT.md and CONTRACT.md
-status: accepted
+status: superseded
 date: 2026-07-21
 domain: concept-docs
 scope: "docs/domains/**"
@@ -13,7 +13,7 @@ projection: instructions
 
 ## Context
 
-Domain packages are scaffolded from ADRs whose binding declarations (exported surface, endpoints, granted cross-package edges) constitute a domain contract, but no artifact holds that contract's *current* state — it accretes across the granting ADR, later amending ADRs, and import-linter config. Durable domain knowledge meanwhile lands as flat files in `docs/concepts/`, physically separated from the contract of the domain it explains. Agents working a domain-scoped task therefore have no single location to load, and agents writing documentation have no fixed layout to target — the statistically common default is a free-form per-domain README or a growing flat concepts directory.
+Domain packages are scaffolded from ADRs whose binding declarations (exported surface, endpoints, granted cross-package edges) constitute a domain contract, but no artifact holds that contract's *current* state — it accretes across the granting ADR, later amending ADRs, and import-linter config. Agents working a domain-scoped task therefore have no single location to load, and agents writing documentation have no fixed layout to target — the statistically common default is a free-form per-domain README or a growing flat concepts directory.
 
 ## Decision
 

@@ -1,7 +1,7 @@
 ---
 id: ADR-0013
 title: RESEARCH.md is a human-only research document class
-status: proposed
+status: superseded
 date: 2026-07-22
 domain: research-docs
 scope: "**/RESEARCH.md"
@@ -13,7 +13,7 @@ rule: "Files named exactly RESEARCH.md (any directory) are human-only: agents ne
 
 ## Context
 
-The document taxonomy has two classes: immutable ADRs (`docs/adrs/`, ADR-0005) and mutable living reference documents (`docs/reference/` per ADR-0002, per-domain CONCEPT/CONTRACT files per ADR-0009). Research artifacts have no durable home. Today they meet one of two fates: compressed into an ADR's Context and Rejected-alternatives sections, or written to `.velocai/<task-id>/` scratch and deleted at closeout.
+The document taxonomy has two classes: immutable ADRs (`docs/adrs/`, ADR-0005) and mutable living reference documents (`docs/reference/` per ADR-0002, per-domain CONCEPT/CONTRACT files per ADR-0009). Research artifacts have no durable home. Today they meet one of two fates: compressed into an ADR's Context and Rejected-alternatives sections, or written to `.velocai/tasks/<task-id>/` scratch and deleted at closeout.
 
 A third category has neither home: surveys, tool evaluations, and "we looked at X and it's not time yet" findings. Concrete instances from this project's history: the dependency-cruiser evaluation (ruled out), the Lefthook evaluation (viable, not adopted), and the July 2026 deterministic-enforcement landscape report. None are decisions; all are worth keeping near the domain they inform.
 
