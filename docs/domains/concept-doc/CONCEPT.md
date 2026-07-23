@@ -1,10 +1,9 @@
 ---
 summary: >
   What concept documents are, where they sit between ADRs and code, and how
-  they are created, merged, and pruned — load before writing to docs/concepts/
-  or any docs/domains/<domain>/CONCEPT.md.
+  they are created, merged, and pruned — load before writing to any
+  docs/domains/<domain>/CONCEPT.md.
 scope:
-  - "docs/concepts/**"
   - "docs/domains/**"
 ---
 
@@ -18,18 +17,17 @@ and their rationale; the code below them holds everything derivable by
 reading it. A concept doc exists only for knowledge that fits neither: too
 explanatory for an ADR, too expensive to reconstruct from code.
 
-Concept docs live in two places, split by scope (ADR-0017). Domain-scoped
-knowledge lives at `docs/domains/<domain>/CONCEPT.md` — fixed filename, the
-folder is the identifier — beside a sibling `CONTRACT.yaml` that defines the
-domain's current executable contract (declared surface, endpoints, granted
-edges), with optional ADR provenance. Cross-cutting knowledge that no single domain
-owns lives as `docs/concepts/<name>.md`, where the filename is the
-identifier. The schema and content bars are identical in both locations;
-only placement and naming differ.
+Concept docs live in one place (ADR-0009/ADR-0017): every concept lives at
+`docs/domains/<domain>/CONCEPT.md` — fixed filename, the folder is the
+identifier — beside a sibling `CONTRACT.yaml` that defines the domain's
+current executable contract (declared surface, endpoints, granted edges),
+with optional ADR provenance. Cross-cutting knowledge that no single
+existing domain owns gets its own domain folder rather than a home under an
+unrelated domain; the schema and content bars are the same either way.
 
 Concept docs are **pull artifacts**. Nothing projects them into agent context
-automatically; agents discover them through `INDEX.md` (generated from
-frontmatter summaries) or path-scoped loading via `scope`, and fetch the full
+automatically; agents discover them by scanning `docs/domains/` frontmatter
+summaries or path-scoped loading via `scope`, and fetch the full
 document only when relevant. This is the inverse of ADRs, which push their
 `rule` field into generated instructions. The pull-only nature is why the
 schema is minimal: two frontmatter fields, one required section, two
@@ -51,15 +49,14 @@ itself belongs to the closeout prompts.
 
 ## Invariants
 
-- One concept = one file, and its identifier is fixed at creation: the
-  folder name for a domain CONCEPT.md, the filename for a cross-cutting
-  concept. Two documents claiming overlapping territory breaks
-  canonical-ness — the routing question must be resolved (merge or split)
-  before content lands, not after.
-- Placement is decided by scope, not preference (ADR-0017): knowledge owned
-  by one domain goes to that domain's CONCEPT.md; `docs/concepts/` admits
-  only knowledge no single domain owns. A domain-shaped file appearing in
-  `docs/concepts/` is a routing error, not a second home.
+- One concept = one domain's CONCEPT.md, and its identifier — the domain
+  folder name — is fixed at creation. Two documents claiming overlapping
+  territory breaks canonical-ness — the routing question must be resolved
+  (merge or split) before content lands, not after.
+- Placement is decided by ownership, not preference (ADR-0017): knowledge
+  owned by one domain goes to that domain's CONCEPT.md; knowledge no single
+  domain owns gets its own domain folder. Parking a concept under an
+  unrelated domain is a routing error, not a second home.
 - A domain's CONCEPT.md never absorbs contract state. Surface, endpoints,
   and dependency edges belong to the sibling CONTRACT.yaml, which is the
   primary executable specification; ADR provenance is optional (ADR-0017).

@@ -221,7 +221,7 @@ Link to authoritative repository documents instead of copying them:
 ## References
 
 - [API architecture](../../docs/architecture/api.md)
-- [Error model](../../docs/concepts/error-handling.md)
+
 ```
 
 VS Code supports Markdown links in instruction files and recommends referencing rather than duplicating shared information. citeturn550003view0turn550003view2

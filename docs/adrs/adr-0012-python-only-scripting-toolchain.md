@@ -1,7 +1,7 @@
 ---
 id: ADR-0012
 title: Python is the sole scripting language for framework tooling
-status: proposed
+status: accepted
 date: 2026-07-22
 domain: toolchain
 scope: repo

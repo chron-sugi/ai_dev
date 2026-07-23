@@ -25,7 +25,7 @@ a bug, record it in the inventory file — do not touch it.
    interrogate -v .
    ruff check --select D .
    ```
-2. Write `.velocai/<task-id>/docstring-inventory.md` containing:
+2. Write `.velocai/tasks/<task-id>/docstring-inventory.md` containing:
    - **Coverage summary**: overall %, per-package %.
    - **Symbol table**: one row per missing or defective docstring —
      `path :: symbol | construct type | state | priority`.

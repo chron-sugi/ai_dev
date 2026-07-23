@@ -14,11 +14,8 @@ Invoke Python explicitly as `py -3` on Windows, `python3` on POSIX — never an
 unqualified `python` (ADR-0012 pins the invocation form).
 
 - Test: `py -3 -m pytest -q`
-- Single test file: `py -3 -m pytest tests/config/test_domain_contract.py -q`
+- Single test file: `py -3 -m pytest tests/test_scaffolder_contract.py -q`
 - Lint: `py -3 -m ruff check .`
-- Schema drift check (set `PYTHONPATH=src` first; module form only — direct
-  script invocation fails on relative imports):
-  `py -3 -m app.config.generate_schema --check` (drop `--check` to regenerate)
 - Pipeline operations: discover via `just --list`; run pipeline steps only
   through just recipes, never by invoking pipeline scripts directly (ADR-0008)
 
@@ -50,10 +47,19 @@ domain-contract schema or projection frontmatter schema.
 
 - Ephemeral agent artifacts and app-supplied files go only under `.velocai/`
   (ADR-0010).
+- Each development task has exactly one workspace, `.velocai/tasks/<task-id>/`
+  (ADR-0018) — task id is a short descriptive kebab-case name, never a ticket
+  number or UUID. All task artifacts (exploration.md, plans, reviews, draft
+  CONTRACT.yaml) live there; look there first to resume or continue a task.
+  Workspace contents are drafts — on approval they graduate to their durable
+  home (contracts to `docs/domains/<domain>/CONTRACT.yaml`, decisions to
+  `docs/adrs/`) and the workspace is deleted at closeout.
 - Domain docs live only in `docs/domains/<domain>/` — `CONCEPT.md` (durable
   knowledge) plus `CONTRACT.yaml` (the current executable contract,
-  ADR-0009/ADR-0017). The committed JSON Schema must match the pydantic
-  models — the drift check above proves it.
+  ADR-0009/ADR-0017). Contract validity is defined by the hand-authored
+  schema `.velocai/schemas/CONTRACT.schema.json` (the normative artifact;
+  no runtime validator yet); `.velocai/templates/CONTRACT.yaml` is the
+  authoring scaffold and must always validate against the schema.
 - ADR frontmatter `rule:` fields are projection sources consumed by machines;
   write them as single atomic, imperative statements.
 
@@ -62,5 +68,7 @@ domain-contract schema or projection frontmatter schema.
 - Architecture decisions: `docs/adrs/`
 - Current-state configuration registry (`backend.md`, `frontend.md`,
   `architecture.md`): `docs/reference/` — registry entries, not ADRs (ADR-0002)
-- Authoring templates: `docs/domains/_contract_template.yaml`,
-  `docs/domains/_concept_template.md`
+- Authoring templates (flat, named for the document they produce, ADR-0019):
+  `.velocai/templates/CONTRACT.yaml`, `.velocai/templates/CONCEPT.md`
+- Contract format schema (normative): `.velocai/schemas/CONTRACT.schema.json`
+- Active task workspaces: `.velocai/tasks/<task-id>/` (ADR-0018)

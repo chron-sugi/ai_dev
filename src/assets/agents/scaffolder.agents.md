@@ -16,17 +16,18 @@ prompt conflict, this protocol wins and the conflict is reported.
 
 A valid dispatch supplies:
 
-- `TASK_ID` — scratch/report identity under `.velocai/<TASK_ID>/`
+- `TASK_ID` — the task workspace identity under `.velocai/tasks/<TASK_ID>/` (ADR-0018)
 - `CONTRACT` — `docs/domains/<domain>/CONTRACT.yaml`
 - the backend and/or FSD domain prompts corresponding to the component blocks
-  present in the contract.velocai
+  present in the contract
 
 Do not accept `ADR_ID` as a substitute for `CONTRACT`. ADR provenance is
 optional metadata and is never the scaffolding approval gate.
 
-Before reading declarations, run the repository's domain-contract validator
-through the public `app.config.validate_domain_contract` API. Stop without
-writing when parsing or validation fails, `status` is not `approved`,
+Before reading declarations, confirm the contract parses as YAML and conforms
+to the normative schema `.velocai/schemas/CONTRACT.schema.json` (no runtime
+validator exists yet — check by inspection). Stop without
+writing when parsing or conformance checking fails, `status` is not `approved`,
 `unresolved_gaps` is non-empty, approval metadata is absent, a component is
 present without its matching domain prompt, or a supplied prompt has no
 matching component.
@@ -77,13 +78,13 @@ Never infer an omitted block from prose, conventions, or likely future need.
 
 **4. Enforce.** Add or amend the contracts specified by each activated domain
 prompt. Verify syntax against installed tool versions. Cite the contract rule
-or dependency edge tha.velocaits each exception.
+or dependency edge that permits each exception.
 
 **5. Verify.** Perform every deliberate-violation check for each activated
 component, observe the relevant tool fail, revert the violation, then run all
 positive and full-suite checks. A fence never observed failing is unverified.
 
-**6. Report.** Write one `.velocai/<TASK_ID>/scaffold-report.md`. Include exactly
+**6. Report.** Write one `.velocai/tasks/<TASK_ID>/scaffold-report.md`. Include exactly
 these top-level sections, omitting only component sections whose blocks were
 absent:
 

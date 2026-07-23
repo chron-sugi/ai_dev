@@ -1,7 +1,7 @@
 ---
 id: ADR-0007
 title: Domain-clustered projection via declared frontmatter, not one file per ADR
-status: proposed
+status: accepted
 date: 2026-07-21
 domain: adr-pipeline
 projection: lint

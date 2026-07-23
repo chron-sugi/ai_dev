@@ -1,10 +1,10 @@
 ---
 # PLACEMENT (ADR-0009):
-#   Domain-scoped knowledge → docs/domains/<domain>/CONCEPT.md
+#   All concept knowledge → docs/domains/<domain>/CONCEPT.md
 #     (fixed filename; the folder is the identifier).
-#   Cross-cutting knowledge only → docs/concepts/<name>.md
-#     (filename is the identifier).
-# One sentence answering "should I load this?" — drives INDEX.md generation.
+#   Cross-cutting knowledge gets its own domain folder rather than a home
+#     under an unrelated domain.
+# One sentence answering "should I load this?".
 summary: >
   <What this concept is and when an agent needs it.>
 # Glob(s) for the code territory this concept covers — enables path-scoped

@@ -1,0 +1,19 @@
+The convention that's emerged across the ecosystem — and the one your framework already implicitly follows — is roughly this:
+
+**All-caps for files addressed by convention; lowercase for files addressed by content.**
+
+An all-caps filename signals: *this file's name is a protocol, not a description*. `README.md`, `LICENSE`, `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `CHANGELOG.md` — tools and humans find these by knowing the exact name in advance. GitHub renders `README.md` specially, Claude Code loads `CLAUDE.md` by name, the AGENTS.md standard works because every tool looks for that literal string. The caps do two jobs: they sort to the top of directory listings (uppercase sorts before lowercase in ASCII), and they visually flag "this is infrastructure, not content." You can't rename `README.md` to `overview.md` without breaking the contract — that non-renameability is what earns the caps.
+
+Lowercase is for files whose names describe what's inside: `billing.md`, `auth-flow.md`, `adr-0042-tailwind-config.md`. These are content documents. Their names can change if the content changes, nothing mechanical depends on the exact string, and there may be many siblings following the same pattern. Lowercase-with-hyphens (kebab-case) is the dominant choice here because it's URL-safe, avoids case-sensitivity bugs across filesystems (macOS is case-insensitive by default, Linux isn't — a classic source of "works on my machine" breakage), and reads cleanly in globs.
+
+The test that falls out of this, which matches your ADR-worthiness style of thinking: **would renaming the file break something mechanical or violate a cross-tool expectation?** If yes → all-caps, singleton per directory, name is load-bearing. If no → lowercase, name is descriptive, glob-addressable by pattern rather than by literal name.
+
+Your `docs/domains/*/CONCEPT.md` convention is a textbook application: `CONCEPT.md` is caps because the *name itself* is the addressing mechanism — the glob depends on the literal string, there's exactly one per domain directory, and renaming it breaks projection. The domain identity lives in the directory name (lowercase, descriptive), not the filename. If you'd gone with `docs/domains/billing/billing-concept.md`, the filename would be doing descriptive work redundantly and the glob would break — which is exactly the failure mode you flagged when you established the convention.
+
+Two edge cases worth a position on:
+
+**Mixed-caps hybrids** like `SKILL.md` or `TASKS.md` follow the same rule — they're per-directory singletons found by literal name. The caps aren't about importance; a critically important content document like your supersession-hardening ADR stays lowercase because it's one of many addressed by pattern.
+
+**Config files** (`justfile`, `.eslintrc`, `pyproject.toml`, `lefthook.yml`) are lowercase despite being load-bearing and name-addressed. The tooling ecosystem settled on lowercase for machine-read config decades ago, and fighting that buys nothing. So the caps convention really applies to *human-and-agent-readable markdown* whose name is a contract — caps mark "meta-document for readers," lowercase marks either "content" or "machine config," and the ambiguity between those last two rarely matters because the file extension disambiguates.
+
+If you want this as a projectable rule line for an ADR: *All-caps filenames are reserved for per-directory singleton meta-documents addressed by literal name in globs or tool conventions; all other files are lowercase kebab-case.* That's mechanically checkable with a trivial lint — allowlist the caps names, flag anything else with an uppercase letter.

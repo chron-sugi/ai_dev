@@ -1,6 +1,6 @@
 ---
 agent: agent
-description: Create or update a canonical concept document in docs/concepts/
+description: Create or update a canonical concept document in docs/domains/<domain>/CONCEPT.md
 ---
 
 # Concept Document Creation / Merge
@@ -16,7 +16,7 @@ rejected or routed elsewhere.
 Concept docs hold **domain knowledge only**. Route everything else first:
 
 - **Decision + rationale** (chose X over Y, constraint accepted) → propose an
-  ADR in `docs/adr/` instead. Do not restate decision rationale in a concept doc.
+  ADR in `docs/adrs/` instead. Do not restate decision rationale in a concept doc.
 - **Mechanically checkable rule** → propose a lint rule, hook, or formatter
   config instead. Enforcement outranks documentation.
 - **Procedure / how-to** ("to add a provider, do X then Y") → propose an
@@ -47,17 +47,19 @@ one concept that was split wrong.
 
 ## Step 2 — Merge into canonical, never create a duplicate
 
-- Check `docs/concepts/INDEX.md` and existing files. If a document already
-  owns this topic, **update it in place**. One concept = one file, always.
-- Create a new file only if no existing document plausibly owns the topic.
-  Filename is the identifier: short, kebab-case, stable
-  (e.g., `auth-session.md`). There is no `id` field — the filename is the ID.
-- If ownership is ambiguous between two existing docs, stop and ask the human
-  rather than guessing.
+- Check `docs/domains/` for a domain that already owns this topic. If a
+  domain's `CONCEPT.md` already owns it, **update it in place**. One concept =
+  one domain's `CONCEPT.md`, always.
+- Create a new `docs/domains/<domain>/CONCEPT.md` only if no existing domain
+  plausibly owns the topic. The domain folder name is the identifier: short,
+  kebab-case, stable (e.g., `auth-session`). There is no `id` field — the
+  folder name is the ID.
+- If ownership is ambiguous between two existing domains, stop and ask the
+  human rather than guessing.
 
 ## Step 3 — Apply the content bars
 
-Use the template at `docs/concepts/_template.md`. Rules:
+Use the template at `.velocai/templates/CONCEPT.md`. Rules:
 
 - **Mental model is required.** 3–10 sentences: how the thing actually works,
   the shape a new agent would otherwise spend twenty minutes reconstructing.
@@ -101,7 +103,6 @@ Distillation is the maintenance trigger; do not skip this pass.
 - Hard cap: 250 lines. If a merge would exceed it, do not raise the cap —
   check the "one concept" tests above: propose a split if a seam exists, or
   propose demoting stale entries if not. Present the choice to the human.
-- Regenerate `docs/concepts/INDEX.md` from frontmatter after any change.
 
 ## Step 5 — WAIT for approval
 

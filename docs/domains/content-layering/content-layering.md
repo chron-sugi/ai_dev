@@ -7,7 +7,7 @@
 | **Path/language rules** | `*.instructions.md` with `applyTo` globs | Language/framework/folder-specific conventions | Project-wide facts; role personas | Loaded when matching files touched |
 | **On-demand procedures** | `.github/skills/<name>/SKILL.md` | Bulky, repeatable multi-step procedures (progressive disclosure — only name+description load until invoked) | Always-needed facts; one-off tasks | Body loads only when invoked |
 | **Reusable tasks** | `*.prompt.md` (migrating to skills) | Parameterized reusable prompts / slash commands | Persistent conventions | On invocation |
-| **Per-task state (task artifacts)** | `.ai/tasks/<task-id>/`, `.velocai/<task-id>/`, or HVE-Core's `.copilot-tracking/{research,plans,details}/` | Per-task scratch: research docs, plans with line-referenced details, decision logs, status | Anything durable/reusable across tasks; secrets | Read/written explicitly by agents; **source of truth for handoffs** |
+| **Per-task state (task artifacts)** | `.ai/tasks/<task-id>/`, `.velocai/tasks/<task-id>/`, or HVE-Core's `.copilot-tracking/{research,plans,details}/` | Per-task scratch: research docs, plans with line-referenced details, decision logs, status | Anything durable/reusable across tasks; secrets | Read/written explicitly by agents; **source of truth for handoffs** |
 | **Deterministic enforcement** | `.github/hooks/*.json` + scripts; lint/format configs; CI | PreToolUse deny rules, edit-scope guards, secret blocks, test/lint gates | Guidance/personas (put those in the agent) | Runs outside the model, guaranteed |
 | **Referenced knowledge** | ADRs, design docs (referenced, not inlined) | Deep rationale — referenced with *when/why to read* | Full inlined contents (Blind Reference smell) | Agent reads on demand |
 

@@ -1,38 +1,86 @@
-# yaml-language-server: $schema=../../../src/app/config/schemas/domain-contract.schema.json
-schema_version: 2
+# yaml-language-server: $schema=../../../.velocai/schemas/CONTRACT.schema.json
+schema_version: 3
 domain: configuration
-status: draft
-summary: Define the repository-root velocai.yaml file as the sole user-facing configuration interface for application identity and synchronization behavior.
+status: approved
+summary: >-
+  The repository-root velocai.yaml file is the sole user-facing VelocAI
+  configuration interface, validated and composed with built-in
+  synchronization targets by the src/app/config package's public API.
 rules:
   - id: R-001
     statement: Expose user-adjustable application settings only through the repository-root velocai.yaml file.
     adr: ADR-0015
   - id: R-002
-    statement: Keep internal runtime state outside velocai.yaml.
+    statement: Keep internal runtime state and generated or machine-local values out of velocai.yaml.
     adr: ADR-0015
   - id: R-003
-    statement: Export only explicitly selected non-secret configuration values to React browser bundles.
+    statement: Provide React code only explicitly exported non-secret configuration values; never load velocai.yaml into the browser bundle.
     adr: ADR-0015
-rejected_alternatives:
-  - choice: Keep config/app.yaml as the public file
-    reason: Its generic name and nested location make ownership and discovery ambiguous in consuming repositories.
-  - choice: Use JSON
-    reason: It lacks comments and is unnecessarily noisy for configuration maintained directly by people.
-  - choice: Use TOML
-    reason: It is less natural for nested target mappings and requires separate parsing support in Node-based tooling.
-  - choice: Use INI
-    reason: It cannot represent nested mappings, lists, and per-target configuration without ad hoc encoding conventions.
-  - choice: Split settings between backend and frontend configuration files
-    reason: It creates competing sources of truth for repository-wide synchronization behavior.
+  - id: R-004
+    statement: Define built-in synchronization targets only through the public src/app/config package API.
+    adr: ADR-0016
+  - id: R-005
+    statement: Parse velocai.yaml only into the validated VelocaiSettings model exposed by the src/app/config package.
+    adr: ADR-0022
 adr_provenance:
   - id: ADR-0015
     path: docs/adrs/adr-0015-velocai-yaml-user-configuration.md
-unresolved_gaps:
-  - field: types.models
-    description: Define the exact velocai.yaml keys, nested structure, value types, required fields, and defaults for application identity and synchronization settings.
-  - field: invariants
-    description: Define mechanically testable relationships among overwrite, orphan cleanup, dry-run, and any additional synchronization settings.
-  - field: backend
-    description: Define the package, public validation and loading API, and any backend configuration declarations if this domain requires Python scaffolding.
-  - field: frontend
-    description: Define the explicitly exportable non-secret values and frontend consumption surface if this domain requires frontend scaffolding.
+  - id: ADR-0016
+    path: docs/adrs/adr-0016-built-in-targets-config-package-api.md
+  - id: ADR-0022
+    path: docs/adrs/adr-0022-velocai-yaml-settings-schema.md
+approval:
+  actor: human
+  name: dbroo
+  approved_at: "2026-07-23T15:00:19Z"
+
+types:
+  models:
+    - name: VelocaiSettings
+      description: Validated user settings from the repository-root velocai.yaml; every field carries the ADR-0022 default so a missing file yields a valid configuration.
+      fields:
+        - name: app_name
+          type: str
+          description: Application identity (velocai.yaml key app.name, default "velocai").
+        - name: overwrite
+          type: bool
+          description: Mirror source over destination files (velocai.yaml key sync.overwrite, default true).
+        - name: clean_orphans
+          type: bool
+          description: Delete destination files that lack a source (velocai.yaml key sync.clean_orphans, default false).
+        - name: dry_run_default
+          type: bool
+          description: Preview synchronization unless explicitly told to apply (velocai.yaml key sync.dry_run_default, default true).
+    - name: ResolvedConfig
+      description: User settings combined with built-in application behavior.
+      fields:
+        - name: settings
+          type: VelocaiSettings
+          description: The validated user settings.
+        - name: source_root
+          type: str
+          description: Built-in asset source root ("src/assets"); never user-adjustable.
+        - name: targets
+          type: dict[str, object]
+          description: Built-in synchronization target definitions; shape is internal to the config package (ADR-0016).
+  errors:
+    - name: SettingsValidationError
+      description: Raised when velocai.yaml contains unknown keys or invalid values.
+
+invariants:
+  - id: I-001
+    statement: Every velocai.yaml setting has a typed default in VelocaiSettings, so a missing velocai.yaml yields a fully valid configuration.
+    applies_to: [backend, types.VelocaiSettings]
+    enforcement: Field defaults on the VelocaiSettings model and package-level tests.
+
+backend:
+  package: config
+  public_api:
+    - name: load_settings
+      kind: function
+      signature: "load_settings(path: str | None = None) -> VelocaiSettings"
+      description: Parse and validate velocai.yaml; return defaults when the file is absent; raise SettingsValidationError on unknown keys or invalid values.
+    - name: resolve_config
+      kind: function
+      signature: "resolve_config(settings: VelocaiSettings | None = None) -> ResolvedConfig"
+      description: Combine user settings with the built-in synchronization target definitions.

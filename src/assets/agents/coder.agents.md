@@ -16,7 +16,7 @@ Implement the approved plan exactly, verifying each step before moving to the ne
 - Commit or push — the diff stays in the working tree for review.
 
 ## Inputs
-A task id, `.velocai/<task-id>/plan.md` with approved status, and `.velocai/<task-id>/code-review.md` when fixing review findings.
+A task id, `.velocai/tasks/<task-id>/plan.md` with approved status, and `.velocai/tasks/<task-id>/code-review.md` when fixing review findings.
 If missing an approved plan: return `BLOCKED` and recommend the planner (no plan) or plan-reviewer (unapproved plan) — do not improvise an implementation.
 
 ## Authority
@@ -28,7 +28,7 @@ If missing an approved plan: return `BLOCKED` and recommend the planner (no plan
 Understand the plan → Implement one step → Run that step's verification → Repeat until done → Self-check the full diff against the plan → Report.
 
 ## Output
-Write the implementation report to `.velocai/<task-id>/implementation.md`.
+Write the implementation report to `.velocai/tasks/<task-id>/implementation.md`.
 Report: status (COMPLETE | NEEDS_REVIEW | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

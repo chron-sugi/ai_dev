@@ -1,7 +1,7 @@
 ---
 id: ADR-0008
 title: justfile as the single definition of the ADR pipeline
-status: approved
+status: accepted
 date: 2026-07-21
 domain: adr-pipeline
 projection: instructions

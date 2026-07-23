@@ -21,16 +21,16 @@ def test_combined_protocol_orders_backend_seam_frontend() -> None:
     seam_at = text.index("OpenAPI export and client type-generation")
     frontend_at = text.index("Scaffold and verify frontend")
     assert backend_at < seam_at < frontend_at
-    assert "one `.velocai/<TASK_ID>/scaffold-report.md`" in text
+    assert "one `.velocai/tasks/<TASK_ID>/scaffold-report.md`" in text
 
 
 def test_domain_prompts_are_presence_driven() -> None:
     """Both domain prompts consume YAML blocks rather than ADR inference."""
 
-    python = Path("src/assets/prompts/scaffold-python-domain-package.md").read_text(
+    python = Path("src/assets/prompts/scaffold-python-domain-package.prompt.md").read_text(
         encoding="utf-8"
     )
-    frontend = Path("src/assets/prompts/scaffold-fsd-frontend-slice.md").read_text(
+    frontend = Path("src/assets/prompts/scaffold-fsd-frontend-slice.prompt.md").read_text(
         encoding="utf-8"
     )
     assert "Resolve each only from optional block presence" in python

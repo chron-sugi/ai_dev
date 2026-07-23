@@ -1,7 +1,7 @@
 ---
 id: ADR-0005
 title: ADRs remain the source of truth after projection
-status: proposed
+status: accepted
 date: 2026-07-21
 domain: adr-pipeline
 projection: instructions

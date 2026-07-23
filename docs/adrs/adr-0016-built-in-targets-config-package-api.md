@@ -1,7 +1,7 @@
 ---
 id: ADR-0016
 title: Built-in synchronization targets owned by the config package API
-status: approved
+status: accepted
 date: 2026-07-22
 domain: configuration
 scope: "src/app/config/**,velocai.yaml,config/app.yaml"

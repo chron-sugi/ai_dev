@@ -1,7 +1,7 @@
 ---
 id: ADR-0004
 title: No CONSTITUTION.md — durable rules enter the repo only as ADRs
-status: proposed
+status: accepted
 date: 2026-07-21
 domain: adr-pipeline
 projection: instructions

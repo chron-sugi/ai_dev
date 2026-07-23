@@ -1,7 +1,7 @@
 ---
 id: ADR-0014
 title: Layered enforcement of the RESEARCH.md human-only boundary
-status: proposed
+status: accepted
 date: 2026-07-22
 domain: research-docs
 scope: ".claude/settings.json,.github/hooks/**,scripts/hooks/**"

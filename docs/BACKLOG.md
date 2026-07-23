@@ -6,3 +6,8 @@
 6. Reconsider a glossary? Make it optional or config driven? Useful for domain nomralized vs canonical? 
 7. Nested domains, mirror backend? 
 8. just file
+9. VS Code agent frontmatter support
+
+## BACKLOG UI
+- Approval Center
+- Review Center

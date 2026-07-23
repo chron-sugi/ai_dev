@@ -1,7 +1,7 @@
 ---
 id: ADR-0006
 title: Generated agent-facing surfaces are never hand-edited
-status: proposed
+status: accepted
 date: 2026-07-21
 domain: adr-pipeline
 projection: lint

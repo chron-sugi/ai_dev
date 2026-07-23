@@ -1,0 +1,602 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "velocai/CONTRACT.schema.json",
+  "title": "velocai domain contract",
+  "description": "Normative shape of a domain CONTRACT.yaml. This file is the single source of truth for contract validity; the template at .velocai/templates/CONTRACT.yaml demonstrates one valid instance and never states constraints of its own. Semantics: presence of a component block (types, invariants, dependencies, http, backend, frontend) means the scaffolder creates that concern — absence means omit, never infer. Referential rule not expressible here: every endpoint id referenced from http.backend.endpoint_ids or frontend.segments.api must be declared in http.endpoints.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "domain", "status", "summary", "rules"],
+  "properties": {
+    "schema_version": {
+      "description": "Version of this contract format. Bumped when this schema file changes shape (v3: added backend persistence/service/config/jobs/testing blocks and frontend model/lib segments; tightened layer enum).",
+      "const": 3
+    },
+    "domain": {
+      "description": "The domain this contract governs; matches the docs/domains/<domain>/ folder name.",
+      "$ref": "#/definitions/kebabCase"
+    },
+    "status": {
+      "description": "Contract lifecycle state. Only an approved contract with zero unresolved gaps is scaffoldable.",
+      "enum": ["draft", "approved"]
+    },
+    "summary": {
+      "description": "The domain charter and intended user-visible capability, one to two sentences.",
+      "type": "string",
+      "minLength": 1
+    },
+    "rules": {
+      "description": "Atomic, checkable domain rules. Distinct from invariants: a rule directs agent behavior; an invariant is a must-hold property of the built system with an enforcement mechanism.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^R-[0-9]{3}$" },
+          "statement": { "type": "string", "minLength": 1 },
+          "adr": { "$ref": "#/definitions/adrId" }
+        }
+      }
+    },
+    "rejected_alternatives": {
+      "description": "Alternatives rejected while settling this contract. Record only alternatives not already recorded in a provenance ADR — when an ADR exists, it is the home for its own rejected alternatives.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["choice", "reason"],
+        "properties": {
+          "choice": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "adr_provenance": {
+      "description": "ADRs this contract's content derives from. Optional metadata, never the approval gate (ADR-0017).",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "path"],
+        "properties": {
+          "id": { "$ref": "#/definitions/adrId" },
+          "path": { "type": "string", "pattern": "^docs/adrs/.+\\.md$" }
+        }
+      }
+    },
+    "unresolved_gaps": {
+      "description": "Facts required for a complete contract but not yet decided. Must be empty before approval.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "description"],
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "approval": {
+      "description": "Approval metadata. Present exactly when status is approved; never fabricated by agents.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor", "name", "approved_at"],
+      "properties": {
+        "actor": { "enum": ["human", "agent"] },
+        "name": { "type": "string", "minLength": 1 },
+        "approved_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "types": {
+      "description": "Root-owned shared vocabulary. Enums generate in backend models.py when a backend component is present; frontend code consumes projected/generated types.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "fields"],
+            "properties": {
+              "name": { "$ref": "#/definitions/pascalCase" },
+              "description": { "type": "string" },
+              "fields": { "$ref": "#/definitions/fieldList" }
+            }
+          }
+        },
+        "enums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "base", "members"],
+            "properties": {
+              "name": { "$ref": "#/definitions/pascalCase" },
+              "base": { "enum": ["StrEnum", "IntEnum"] },
+              "description": { "type": "string" },
+              "members": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": { "type": ["string", "integer"] }
+              }
+            }
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name"],
+            "properties": {
+              "name": { "$ref": "#/definitions/pascalCase" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "type"],
+            "properties": {
+              "name": { "$ref": "#/definitions/pascalCase" },
+              "type": { "type": "string", "minLength": 1 },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "invariants": {
+      "description": "Must-hold properties of the built system, each with its enforcement mechanism. See rules for the rule/invariant distinction.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement", "applies_to", "enforcement"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^I-[0-9]{3}$" },
+          "statement": { "type": "string", "minLength": 1 },
+          "applies_to": {
+            "description": "Component names (backend, frontend, http) or dotted type references (types.<Model>).",
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^(backend|frontend|http|types\\.[A-Z][A-Za-z0-9]*)$" }
+          },
+          "enforcement": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "dependencies": {
+      "description": "Granted cross-domain edges. Each entry names another domain's surface this domain may depend on; absence of an entry means the edge is forbidden.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "description": "Python package names (snake_case) this domain's backend may import.",
+          "type": "array",
+          "items": { "$ref": "#/definitions/snakeCase" }
+        },
+        "frontend": {
+          "description": "Slice names (kebab-case) this domain's frontend may import from.",
+          "type": "array",
+          "items": { "$ref": "#/definitions/kebabCase" }
+        }
+      }
+    },
+    "http": {
+      "description": "Shared HTTP declarations, referenced by stable endpoint id from both components.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endpoints"],
+      "properties": {
+        "schemas": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "fields"],
+            "properties": {
+              "name": { "$ref": "#/definitions/pascalCase" },
+              "description": { "type": "string" },
+              "fields": { "$ref": "#/definitions/fieldList" }
+            }
+          }
+        },
+        "endpoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "method", "path", "operation", "response_type", "status_code"],
+            "properties": {
+              "id": { "$ref": "#/definitions/endpointId" },
+              "method": { "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+              "path": { "type": "string", "pattern": "^/" },
+              "operation": { "$ref": "#/definitions/snakeCase" },
+              "response_type": { "$ref": "#/definitions/pascalCase" },
+              "status_code": { "type": "integer", "minimum": 100, "maximum": 599 },
+              "errors": {
+                "type": "array",
+                "items": { "$ref": "#/definitions/pascalCase" }
+              }
+            }
+          }
+        },
+        "backend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["endpoint_ids"],
+          "properties": {
+            "endpoint_ids": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/endpointId" }
+            },
+            "dependency_providers": {
+              "description": "FastAPI dependency-injection providers the endpoints require. Distinct from dependencies.backend, which grants cross-domain import edges.",
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "provides"],
+                "properties": {
+                  "name": { "$ref": "#/definitions/snakeCase" },
+                  "provides": { "type": "string", "minLength": 1 },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "backend": {
+      "description": "Python backend component. Presence means create. Each optional sub-block activates its corresponding module in the rung layout — absence means the module is deliberately omitted, not undecided.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["package", "public_api"],
+      "properties": {
+        "package": {
+          "description": "Python package name: the domain name with hyphens replaced by underscores.",
+          "$ref": "#/definitions/snakeCase"
+        },
+        "public_api": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/definitions/backendExport" }
+        },
+        "persistence": {
+          "description": "Presence activates tables.py and store.py (always created together). Declares the tables this domain owns.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tables"],
+          "properties": {
+            "tables": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name"],
+                "properties": {
+                  "name": { "$ref": "#/definitions/snakeCase" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "service": {
+          "description": "Presence activates service.py and the service-authority rule: the public API and both rung-5 adapters route through service, never store. Declares the exact service operations.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["operations"],
+          "properties": {
+            "operations": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "signature"],
+                "properties": {
+                  "name": { "$ref": "#/definitions/snakeCase" },
+                  "signature": { "type": "string", "minLength": 1 },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "config": {
+          "description": "Presence activates config.py (pydantic BaseSettings subclass). Declares the exact runtime tunables; never used for constants.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tunables"],
+          "properties": {
+            "tunables": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "type"],
+                "properties": {
+                  "name": { "$ref": "#/definitions/snakeCase" },
+                  "type": { "type": "string", "minLength": 1 },
+                  "default": {},
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "jobs": {
+          "description": "Presence activates jobs.py. Declares the exact scheduled or background entries; jobs decide when to run, housekeeping logic lives in store.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entries"],
+          "properties": {
+            "entries": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name"],
+                "properties": {
+                  "name": { "$ref": "#/definitions/snakeCase" },
+                  "schedule": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "testing": {
+          "description": "Presence activates testing.py (consumer-facing fakes), the repo-wide contract forbidding production imports of it, and a drift-alarm test. Declares the exact exports.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["exports"],
+          "properties": {
+            "exports": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/definitions/backendExport" }
+            }
+          }
+        }
+      }
+    },
+    "frontend": {
+      "description": "Feature-Sliced Design frontend component. Presence means create.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slice", "layer", "public_api", "segments"],
+      "properties": {
+        "slice": { "$ref": "#/definitions/kebabCase" },
+        "layer": {
+          "description": "Slices live only on these four layers; app and shared are foundation layers with no slices.",
+          "enum": ["pages", "widgets", "features", "entities"]
+        },
+        "placement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": {
+            "reason": { "type": "string", "minLength": 1 },
+            "consumers": {
+              "description": "Slices expected to import this slice's public API.",
+              "type": "array",
+              "items": { "$ref": "#/definitions/kebabCase" }
+            }
+          }
+        },
+        "backend_package": { "$ref": "#/definitions/snakeCase" },
+        "public_api": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "kind", "from_segment", "signature"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["component", "function", "hook", "type"] },
+              "from_segment": { "enum": ["ui", "api", "model", "lib"] },
+              "signature": { "type": "string", "minLength": 1 },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "route": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "export"],
+          "properties": {
+            "path": { "type": "string", "pattern": "^/" },
+            "export": { "type": "string", "minLength": 1 }
+          }
+        },
+        "segments": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "ui": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["components"],
+              "properties": {
+                "components": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "props_type"],
+                    "properties": {
+                      "name": { "$ref": "#/definitions/pascalCase" },
+                      "props_type": { "$ref": "#/definitions/pascalCase" },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "api": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["endpoint_ids", "functions"],
+              "properties": {
+                "endpoint_ids": {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/endpointId" }
+                },
+                "functions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "endpoint_id", "signature"],
+                    "properties": {
+                      "name": { "type": "string", "minLength": 1 },
+                      "endpoint_id": { "$ref": "#/definitions/endpointId" },
+                      "signature": { "type": "string", "minLength": 1 },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "model": {
+              "description": "Presence means shared client state beyond component-local state. Declares the exact state; absent, component-local state stays in its component.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["state"],
+              "properties": {
+                "state": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "type"],
+                    "properties": {
+                      "name": { "type": "string", "minLength": 1 },
+                      "type": { "type": "string", "minLength": 1 },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            },
+            "lib": {
+              "description": "Presence means slice-internal helpers. Each helper names at least two consumers — a single-consumer helper belongs beside its consumer, and repo-wide utilities are out of slice scope.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["helpers"],
+              "properties": {
+                "helpers": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["name", "consumers"],
+                    "properties": {
+                      "name": { "type": "string", "minLength": 1 },
+                      "signature": { "type": "string" },
+                      "description": { "type": "string" },
+                      "consumers": {
+                        "type": "array",
+                        "minItems": 2,
+                        "items": { "type": "string", "minLength": 1 }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "status": { "const": "approved" } },
+        "required": ["status"]
+      },
+      "then": {
+        "required": ["approval"],
+        "properties": {
+          "unresolved_gaps": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "status": { "const": "draft" } },
+        "required": ["status"]
+      },
+      "then": {
+        "not": { "required": ["approval"] }
+      }
+    }
+  ],
+  "definitions": {
+    "backendExport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "signature"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["function", "class", "constant"] },
+        "signature": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" }
+      }
+    },
+    "kebabCase": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$"
+    },
+    "snakeCase": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+    },
+    "pascalCase": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*$"
+    },
+    "adrId": {
+      "type": "string",
+      "pattern": "^ADR-[0-9]{4}$"
+    },
+    "endpointId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "fieldList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type"],
+        "properties": {
+          "name": { "$ref": "#/definitions/snakeCase" },
+          "type": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ Implement small, unambiguous plan steps exactly as written, verifying each befor
 - Commit or push — the diff stays in the working tree for review.
 
 ## Inputs
-A task id and `.velocai/<task-id>/plan.md` with approved status, with the assigned steps clearly identified; `.velocai/<task-id>/code-review.md` when fixing review findings.
+A task id and `.velocai/tasks/<task-id>/plan.md` with approved status, with the assigned steps clearly identified; `.velocai/tasks/<task-id>/code-review.md` when fixing review findings.
 If missing an approved plan, or if any assigned step requires interpretation beyond what is written: return `BLOCKED` and recommend the coder — do not improvise.
 
 ## Authority
@@ -28,7 +28,7 @@ If missing an approved plan, or if any assigned step requires interpretation bey
 Understand the assigned steps → Confirm each is mechanical → Implement one step → Run its verification → Repeat → Report.
 
 ## Output
-Write the implementation report to `.velocai/<task-id>/implementation.md`.
+Write the implementation report to `.velocai/tasks/<task-id>/implementation.md`.
 Report: status (COMPLETE | NEEDS_REVIEW | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

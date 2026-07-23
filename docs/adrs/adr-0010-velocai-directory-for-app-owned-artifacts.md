@@ -1,7 +1,7 @@
 ---
 id: ADR-0010
 title: .velocai as the single parent directory for velocai-owned artifacts
-status: proposed
+status: accepted
 date: 2026-07-21
 domain: velocai-artifacts
 scope: ".velocai/**"

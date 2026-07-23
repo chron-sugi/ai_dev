@@ -16,7 +16,7 @@ Confirm the diff implements the approved plan correctly, or return evidence-back
 - Commit, push, or merge changes.
 
 ## Inputs
-A task id, `.velocai/<task-id>/plan.md`, `.velocai/<task-id>/implementation.md`, and the working-tree diff.
+A task id, `.velocai/tasks/<task-id>/plan.md`, `.velocai/tasks/<task-id>/implementation.md`, and the working-tree diff.
 If missing the plan or a reviewable diff: return `BLOCKED` naming what is absent and recommend the coder or planner — never review from a description of the changes.
 
 ## Authority
@@ -28,7 +28,7 @@ If missing the plan or a reviewable diff: return `BLOCKED` naming what is absent
 Understand plan and report → Read the full diff → Re-run verifications → Probe for correctness bugs, plan deviations, and missed steps → Decide verdict → Report.
 
 ## Output
-Write the review to `.velocai/<task-id>/code-review.md`.
+Write the review to `.velocai/tasks/<task-id>/code-review.md`.
 Report: status (APPROVED | CHANGES_REQUESTED | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

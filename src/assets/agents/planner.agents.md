@@ -16,7 +16,7 @@ Produce an ordered implementation plan where every step names its target files a
 - Approve its own plan — that is the plan-reviewer's job.
 
 ## Inputs
-A task id, a task description, and `.velocai/<task-id>/architecture.md` or an equivalently settled approach; `.velocai/<task-id>/plan-review.md` when revising.
+A task id, a task description, and `.velocai/tasks/<task-id>/architecture.md` or an equivalently settled approach; `.velocai/tasks/<task-id>/plan-review.md` when revising.
 If missing an approach: for a single-obvious-approach task, state that assumption in the plan; otherwise return `BLOCKED` and recommend the architect.
 
 ## Authority
@@ -28,7 +28,7 @@ If missing an approach: for a single-obvious-approach task, state that assumptio
 Understand the approach → Verify target files and interfaces against the codebase → Draft ordered steps with verification → Self-check for gaps, dead ends, and missing rollback notes → Report.
 
 ## Output
-Write the plan to `.velocai/<task-id>/plan.md`.
+Write the plan to `.velocai/tasks/<task-id>/plan.md`.
 Report: status (COMPLETE | NEEDS_REVIEW | BLOCKED), findings, evidence (file:line), open questions, recommended next role, deviations.
 
 ## Done when

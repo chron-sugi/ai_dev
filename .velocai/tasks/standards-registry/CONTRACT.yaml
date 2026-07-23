@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=../../schemas/CONTRACT.schema.json
+schema_version: 3
+domain: adr-pipeline
+status: draft
+summary: Current executable rules for ADR storage, projection, pipeline entry points, and the standards registry write path.
+rules:
+  - id: R-001
+    statement: Record a durable rule as its own ADR in docs/adrs/ when it is structural or contested, or as a single rule line in docs/standards/<domain>.md when it is an uncontested standing rule; never in a monolithic hand-edited rules file.
+    adr: ADR-0023
+  - id: R-002
+    statement: Preserve ADRs as the permanent reasoning source after projecting their rules.
+    adr: ADR-0005
+  - id: R-003
+    statement: Generate agent-facing rule surfaces through the projection pipeline; never hand-edit generated regions.
+    adr: ADR-0006
+  - id: R-004
+    statement: Cluster projected rules by their declared domain and cite the source ADR on every projected line.
+    adr: ADR-0007
+  - id: R-005
+    statement: Run ADR pipeline operations through justfile recipes rather than invoking implementation scripts directly.
+    adr: ADR-0008
+  - id: R-006
+    statement: Author each standards file at docs/standards/<domain>.md with frontmatter of exactly domain (from the projector's domain vocabulary) and scope (one quoted glob string).
+    adr: ADR-0023
+  - id: R-007
+    statement: Project only single-bullet lines under a standards file's "## Rules" section; never project "## Enforced by lint" or "## Notes" content.
+    adr: ADR-0023
+  - id: R-008
+    statement: Name the enforcing tool on every "## Enforced by lint" line in a standards file.
+    adr: ADR-0023
+  - id: R-009
+    statement: On conflict between a standard line and an accepted ADR rule, the ADR wins — delete or rewrite the standard line; the projector fails on exact-duplicate rule text across the two sources.
+    adr: ADR-0023
+  - id: R-010
+    statement: Promote a contested standard to its own ADR and delete its registry line in the same PR.
+    adr: ADR-0023
+  - id: R-011
+    statement: Merge each domain's projected file with accepted ADR rules first and standard rules second, each block sorted by source id or filename, every line citing its source, and measure the token budget gate against the combined file.
+    adr: ADR-0023
+rejected_alternatives:
+  - choice: Markdown current-state registry
+    reason: Markdown cannot provide schema validation or deterministic scaffolder inputs.
+adr_provenance:
+  - id: ADR-0017
+    path: docs/adrs/adr-0017-primary-yaml-domain-contracts.md
+  - id: ADR-0005
+    path: docs/adrs/adr-0005-adrs-are-the-source-of-truth-after-projection.md
+  - id: ADR-0006
+    path: docs/adrs/adr-0006-generated-surfaces-are-never-hand-edited.md
+  - id: ADR-0007
+    path: docs/adrs/adr-0007-domain-clustered-projection.md
+  - id: ADR-0008
+    path: docs/adrs/adr-0008-justfile-is-the-single-pipeline-definition.md
+  - id: ADR-0023
+    path: docs/adrs/adr-0023-standards-registry-for-standing-rules.md
+unresolved_gaps:
+  - field: approval
+    description: Review the merged declarations and approve; graduation replaces the currently approved docs/domains/adr-pipeline/CONTRACT.yaml (approved 2026-07-22), so approval here also ratifies retiring that version.
+  - field: rules
+    description: R-001 re-cites ADR-0023 in place of ADR-0004 on the premise that ADR-0023 (status proposed, supersedes ADR-0004) will be accepted; if ADR-0023 is rejected, restore the ADR-0004 citation and drop R-006 through R-011.
